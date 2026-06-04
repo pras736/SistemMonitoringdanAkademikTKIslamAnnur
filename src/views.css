@@ -1,0 +1,138 @@
+@layer components {
+  /* --- Login View --- */
+  .login-page-container {
+    @apply min-h-screen flex items-center justify-center bg-tk-bg p-8;
+  }
+
+  .login-card {
+    @apply flex max-w-[1100px] w-full bg-tk-card rounded-2xl shadow-xl overflow-hidden flex-col md:flex-row;
+  }
+
+  .login-left-panel {
+    @apply flex-1 bg-tk-bg p-8 md:p-12 flex flex-col items-center justify-center text-center;
+  }
+
+  .login-image-container {
+    @apply w-full max-w-[380px] rounded-xl overflow-hidden shadow-md mb-10;
+  }
+
+  .login-image {
+    @apply w-full h-auto block;
+  }
+
+  .login-title {
+    @apply text-lg leading-relaxed text-tk-text mb-4 font-semibold;
+  }
+
+  .login-subtitle {
+    @apply text-tk-muted text-[0.95rem] mb-8 max-w-[300px] mx-auto;
+  }
+
+  .login-features {
+    @apply flex gap-4 justify-center flex-wrap;
+  }
+
+  .login-feature-badge-primary {
+    @apply flex items-center gap-2 px-4 py-2 rounded-full text-[0.85rem] font-bold border border-tk-secondary text-tk-primary;
+  }
+
+  .login-feature-badge-danger {
+    @apply flex items-center gap-2 px-4 py-2 rounded-full text-[0.85rem] font-bold bg-red-100 text-red-600;
+  }
+
+  .login-right-panel {
+    @apply flex-1 p-8 md:p-16 flex flex-col justify-center;
+  }
+
+  .login-header {
+    @apply mb-10;
+  }
+
+  .login-header-title {
+    @apply text-3xl font-bold mb-2 text-tk-text;
+  }
+
+  .login-header-subtitle {
+    @apply text-tk-muted;
+  }
+
+  .login-error-message {
+    @apply mb-6 bg-red-50 text-red-600 px-4 py-3 rounded-md text-sm border border-red-200;
+  }
+
+  .login-form {
+    @apply flex flex-col gap-6;
+  }
+
+  .login-form-group {
+    @apply flex flex-col gap-2;
+  }
+
+  .login-label {
+    @apply font-medium text-[0.95rem] text-tk-text;
+  }
+
+  .login-input-wrapper {
+    @apply relative flex items-center;
+  }
+
+  .login-input-icon {
+    @apply absolute left-4 text-tk-muted;
+  }
+
+  .login-input {
+    @apply w-full py-3.5 pr-4 pl-11 border border-tk-border rounded-md font-sans text-[0.95rem] transition-all duration-200 focus:outline-none focus:border-tk-primary focus:ring-4 focus:ring-tk-secondary-light;
+  }
+
+  .login-label-row {
+    @apply flex justify-between items-center;
+  }
+
+  .login-link {
+    @apply text-[0.85rem] text-tk-primary font-medium hover:underline;
+  }
+
+  .login-checkbox-wrapper {
+    @apply flex;
+  }
+
+  .login-checkbox-label {
+    @apply flex items-center gap-2 text-[0.9rem] text-tk-muted cursor-pointer hover:text-tk-text;
+  }
+
+  .login-checkbox {
+    @apply w-4 h-4 rounded border-tk-border text-tk-primary focus:ring-tk-primary;
+  }
+
+  .login-submit-btn {
+    @apply bg-tk-primary text-white p-4 rounded-md font-bold text-base flex items-center justify-center gap-2 mt-4 transition-colors;
+  }
+
+  .login-submit-btn-loading {
+    @apply opacity-70 cursor-not-allowed;
+  }
+
+  .login-submit-btn-idle {
+    @apply hover:bg-tk-primary-light;
+  }
+
+  .login-footer {
+    @apply mt-10 text-center;
+  }
+
+  .login-footer-text {
+    @apply text-tk-muted text-[0.95rem] mb-8;
+  }
+
+  .login-footer-link {
+    @apply text-tk-primary font-bold hover:underline;
+  }
+
+  .login-footer-links {
+    @apply flex justify-center gap-8 border-t border-tk-border pt-6;
+  }
+
+  .login-footer-sublink {
+    @apply text-tk-muted font-medium text-[0.85rem] flex items-center gap-1.5 hover:text-tk-primary;
+  }
+}
