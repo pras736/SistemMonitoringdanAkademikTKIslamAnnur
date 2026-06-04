@@ -18,7 +18,7 @@ const Login = () => {
 
     try {
       // Replace with your actual login API endpoint
-      const response = await axios.post('http://localhost:5000/api/login', {
+      const response = await axios.post('http://127.0.0.1:8000/api/login', {
         username,
         password,
       });
