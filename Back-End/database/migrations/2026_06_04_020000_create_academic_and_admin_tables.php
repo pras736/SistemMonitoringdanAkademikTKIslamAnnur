@@ -57,18 +57,28 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 5. ORANG_TUA
+        // 5. ORANG_TUA (AYAH & IBU)
         Schema::create('orang_tuas', function (Blueprint $table) {
             $table->id('id_ortu');
             $table->foreignId('id_user')->constrained('users', 'id_user')->onDelete('cascade');
             $table->foreignId('id_anak')->nullable()->constrained('anaks', 'id_anak')->onDelete('cascade');
-            $table->string('role'); // e.g. ayah/ibu/wali
-            $table->string('nama');
-            $table->string('nik')->nullable();
-            $table->string('tempat_tanggal_lahir')->nullable();
-            $table->string('pendidikan_tertinggi')->nullable();
-            $table->string('pekerjaan')->nullable();
-            $table->string('alamat_telp_kantor')->nullable();
+            
+            // Data Ayah
+            $table->string('nama_ayah');
+            $table->string('nik_ayah')->nullable();
+            $table->string('ttl_ayah')->nullable();
+            $table->string('pendidikan_ayah')->nullable();
+            $table->string('pekerjaan_ayah')->nullable();
+            $table->string('kantor_ayah')->nullable();
+
+            // Data Ibu
+            $table->string('nama_ibu');
+            $table->string('nik_ibu')->nullable();
+            $table->string('ttl_ibu')->nullable();
+            $table->string('pendidikan_ibu')->nullable();
+            $table->string('pekerjaan_ibu')->nullable();
+            $table->string('kantor_ibu')->nullable();
+
             $table->timestamps();
         });
 
