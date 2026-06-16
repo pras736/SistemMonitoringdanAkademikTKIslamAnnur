@@ -13,7 +13,6 @@ export const ManageGuru = () => {
   // Form States
   const [editingId, setEditingId] = useState(null);
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [namaGuru, setNamaGuru] = useState('');
   const [nip, setNip] = useState('');
@@ -52,7 +51,6 @@ export const ManageGuru = () => {
   const handleOpenAdd = () => {
     setEditingId(null);
     setUsername('');
-    setEmail('');
     setPassword('');
     setNamaGuru('');
     setNip('');
@@ -65,7 +63,6 @@ export const ManageGuru = () => {
   const handleOpenEdit = (guru) => {
     setEditingId(guru.id_guru);
     setUsername(guru.user?.username || '');
-    setEmail(guru.user?.email || '');
     setPassword('');
     setNamaGuru(guru.nama_guru);
     setNip(guru.nip || '');
@@ -80,7 +77,6 @@ export const ManageGuru = () => {
     setError('');
     const payload = {
       username,
-      email,
       nama_guru: namaGuru,
       nip,
       no_telp: noTelp,
@@ -145,7 +141,7 @@ export const ManageGuru = () => {
             <tr className="bg-tk-bg">
               <th className="p-4 font-semibold text-tk-primary border-b border-tk-border">NIP</th>
               <th className="p-4 font-semibold text-tk-primary border-b border-tk-border">Nama Guru</th>
-              <th className="p-4 font-semibold text-tk-primary border-b border-tk-border">Username / Email</th>
+              <th className="p-4 font-semibold text-tk-primary border-b border-tk-border">Username</th>
               <th className="p-4 font-semibold text-tk-primary border-b border-tk-border">No. Telepon</th>
               <th className="p-4 font-semibold text-tk-primary border-b border-tk-border">Wali Kelas</th>
               <th className="p-4 font-semibold text-tk-primary border-b border-tk-border text-center">Aksi</th>
@@ -163,7 +159,7 @@ export const ManageGuru = () => {
                   <td className="p-4 border-b border-tk-border font-semibold text-tk-text">{guru.nama_guru}</td>
                   <td className="p-4 border-b border-tk-border text-[0.9rem]">
                     <div className="font-semibold text-tk-text">{guru.user?.username}</div>
-                    <div className="text-tk-muted">{guru.user?.email}</div>
+                    <div className="text-tk-muted">-</div>
                   </td>
                   <td className="p-4 border-b border-tk-border">{guru.no_telp}</td>
                   <td className="p-4 border-b border-tk-border font-medium text-tk-primary">
@@ -234,8 +230,7 @@ export const ManageGuru = () => {
                     <input required type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-tk-text">Email</label>
-                    <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
+
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-tk-text">Password {editingId && '(Kosongkan jika tidak ingin mengubah)'}</label>

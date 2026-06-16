@@ -69,7 +69,6 @@ class AdminController extends Controller
     {
         $request->validate([
             'username' => 'required|string|unique:users,username',
-            'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'nama_guru' => 'required|string',
             'nip' => 'nullable|string',
@@ -80,7 +79,6 @@ class AdminController extends Controller
         $guru = DB::transaction(function () use ($request) {
             $user = User::create([
                 'username' => $request->username,
-                'email' => $request->email,
                 'password_hash' => Hash::make($request->password),
                 'role' => 'guru',
                 'is_active' => true,
@@ -105,7 +103,6 @@ class AdminController extends Controller
 
         $request->validate([
             'username' => 'required|string|unique:users,username,' . $user->id_user . ',id_user',
-            'email' => 'required|email|unique:users,email,' . $user->id_user . ',id_user',
             'password' => 'nullable|string|min:6',
             'nama_guru' => 'required|string',
             'nip' => 'nullable|string',
@@ -116,7 +113,6 @@ class AdminController extends Controller
         DB::transaction(function () use ($request, $guru, $user) {
             $userUpdate = [
                 'username' => $request->username,
-                'email' => $request->email,
             ];
             if ($request->password) {
                 $userUpdate['password_hash'] = Hash::make($request->password);
@@ -170,7 +166,6 @@ class AdminController extends Controller
             
             // Parent info to create account
             'username_ortu' => 'required|string|unique:users,username',
-            'email_ortu' => 'required|email|unique:users,email',
             'password_ortu' => 'required|string|min:6',
             'nama_ayah' => 'required|string',
             'nama_ibu' => 'required|string',
@@ -200,7 +195,6 @@ class AdminController extends Controller
             // Create User Ortu
             $userOrtu = User::create([
                 'username' => $request->username_ortu,
-                'email' => $request->email_ortu,
                 'password_hash' => Hash::make($request->password_ortu),
                 'role' => 'orangtua',
                 'is_active' => true,
