@@ -54,7 +54,6 @@ class DatabaseSeeder extends Seeder
         // Admin
         $userAdmin = User::create([
             'username' => 'admin',
-            'email' => 'admin@tkan-nur.com',
             'password_hash' => Hash::make('password'),
             'role' => 'admin',
             'is_active' => true,
@@ -98,7 +97,6 @@ class DatabaseSeeder extends Seeder
         foreach ($guruData as $g) {
             $userG = User::create([
                 'username' => $g['username'],
-                'email' => $g['email'],
                 'password_hash' => Hash::make('password'),
                 'role' => 'guru',
                 'is_active' => true,
@@ -245,7 +243,6 @@ class DatabaseSeeder extends Seeder
             // Create User Ortu
             $uOrtu = User::create([
                 'username' => $data['username'],
-                'email' => $data['username'] . '@tkan-nur.com',
                 'password_hash' => Hash::make('password'),
                 'role' => 'orangtua',
                 'is_active' => true,

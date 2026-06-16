@@ -36,7 +36,6 @@ export const ManageSiswa = () => {
 
   // Parent account info (only when creating new student)
   const [usernameOrtu, setUsernameOrtu] = useState('');
-  const [emailOrtu, setEmailOrtu] = useState('');
   const [passwordOrtu, setPasswordOrtu] = useState('');
   const [namaAyah, setNamaAyah] = useState('');
   const [namaIbu, setNamaIbu] = useState('');
@@ -141,7 +140,6 @@ export const ManageSiswa = () => {
     setIdKelas(kelas[0]?.id_kelas || '');
 
     setUsernameOrtu('');
-    setEmailOrtu('');
     setPasswordOrtu('');
     setNamaAyah('');
     setNamaIbu('');
@@ -191,12 +189,11 @@ export const ManageSiswa = () => {
         });
       } else {
         // Validation for parent info
-        if (!usernameOrtu || !emailOrtu || !passwordOrtu || !namaAyah || !namaIbu) {
+        if (!usernameOrtu || !passwordOrtu || !namaAyah || !namaIbu) {
           setError('Semua info wali murid wajib diisi untuk siswa baru.');
           return;
         }
         payload.username_ortu = usernameOrtu;
-        payload.email_ortu = emailOrtu;
         payload.password_ortu = passwordOrtu;
         payload.nama_ayah = namaAyah;
         payload.nama_ibu = namaIbu;
@@ -508,8 +505,7 @@ export const ManageSiswa = () => {
                       <input required type="text" value={usernameOrtu} onChange={(e) => setUsernameOrtu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-tk-text">Email Wali</label>
-                      <input required type="email" value={emailOrtu} onChange={(e) => setEmailOrtu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
+
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-sm font-semibold text-tk-text">Password Wali</label>

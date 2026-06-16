@@ -68,8 +68,7 @@ const DashboardAdmin = () => {
                       <div className="flex items-center gap-4">
                         <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                         <div>
-                          <p className="font-semibold text-tk-text m-0">{user.name}</p>
-                          <p className="text-[0.85rem] text-tk-muted m-0">{user.email}</p>
+                          <p className="font-semibold text-tk-text m-0 leading-tight">{user.name}</p>
                         </div>
                       </div>
                     </td>
