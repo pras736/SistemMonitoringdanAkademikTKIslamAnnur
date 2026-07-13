@@ -6,12 +6,12 @@ import defaultAvatar from '../../assets/teacher_avatar.png';
 import logoTK from '../../assets/logo_tk.png';
 
 // ─────────────────────────────────────────────
-// Help content: keyed by role → path → page guide
-// Each page has: title, desc, features[], steps[]
+// Help content: keyed by role → ACTUAL path → page guide
+// Paths must match App.jsx route definitions exactly
 // ─────────────────────────────────────────────
 const HELP_CONTENT = {
   admin: {
-    '/admin/dashboard': {
+    '/admin': {
       title: 'Dashboard Admin',
       desc: 'Pusat informasi ringkasan sistem.',
       features: [
@@ -27,7 +27,7 @@ const HELP_CONTENT = {
         'Jika ada SPP menunggu, klik "Verifikasi Sekarang" untuk langsung ke halaman verifikasi.',
       ],
     },
-    '/admin/kelola-guru': {
+    '/admin/users': {
       title: 'Kelola Data Guru',
       desc: 'Manajemen akun dan data seluruh guru.',
       features: [
@@ -45,42 +45,30 @@ const HELP_CONTENT = {
         'Gunakan kolom pencarian di atas tabel untuk mencari guru berdasarkan nama.',
       ],
     },
-    '/admin/kelola-siswa': {
-      title: 'Kelola Data Siswa',
-      desc: 'Manajemen data siswa dan akun wali murid.',
+    '/admin/academic': {
+      title: 'Kelola Siswa & Kelas',
+      desc: 'Manajemen data siswa, akun wali murid, dan kelas.',
       features: [
         { icon: '➕', label: 'Tambah Siswa', desc: 'Menambah siswa otomatis membuat akun wali murid dan 12 tagihan SPP setahun.' },
         { icon: '✏️', label: 'Edit Siswa', desc: 'Perbarui data siswa lengkap termasuk data orang tua.' },
         { icon: '📤', label: 'Export CSV', desc: 'Unduh seluruh data siswa dalam format CSV siap cetak.' },
+        { icon: '🏫', label: 'Kelola Kelas', desc: 'Tambah, edit, dan hapus data kelas di halaman yang sama.' },
         { icon: '🔍', label: 'Pencarian', desc: 'Cari siswa berdasarkan nama atau kelas.' },
       ],
       steps: [
+        'Halaman ini memiliki dua tab: "Siswa" dan "Kelas" — pilih tab yang ingin dikelola.',
+        '— Tab Siswa —',
         'Klik tombol "Tambah Siswa" untuk membuka formulir pendaftaran.',
         'Isi data siswa: nama lengkap, nama panggilan, jenis kelamin, NISN, dan pilih kelas.',
         'Isi data orang tua: username & password akun wali, nama ayah, dan nama ibu.',
         'Klik "Simpan" — sistem otomatis membuat akun wali murid + 12 tagihan SPP untuk setahun.',
-        'Untuk mengedit, klik ikon pensil (✏️) pada baris siswa.',
-        'Klik "Export CSV" untuk mengunduh seluruh data siswa beserta data orang tua dalam file Excel.',
-        'Gunakan kolom pencarian untuk filter siswa berdasarkan nama.',
+        'Klik "Export CSV" untuk mengunduh seluruh data siswa dalam format yang bisa dibuka di Excel.',
+        '— Tab Kelas —',
+        'Klik "Tambah Kelas", isi nama kelas, tahun ajaran, dan kapasitas, lalu simpan.',
+        'Edit atau hapus kelas dengan klik ikon di kolom aksi pada tabel.',
       ],
     },
-    '/admin/kelola-kelas': {
-      title: 'Kelola Kelas',
-      desc: 'Manajemen data kelas dan tahun ajaran.',
-      features: [
-        { icon: '➕', label: 'Tambah Kelas', desc: 'Buat kelas baru dengan nama, tahun ajaran, dan kapasitas.' },
-        { icon: '✏️', label: 'Edit Kelas', desc: 'Perbarui informasi kelas yang sudah ada.' },
-        { icon: '🗑️', label: 'Hapus Kelas', desc: 'Hapus kelas yang sudah tidak digunakan.' },
-      ],
-      steps: [
-        'Klik tombol "Tambah Kelas" di bagian atas.',
-        'Isi nama kelas (contoh: "TK A1"), tahun ajaran (contoh: "2026/2027"), dan kapasitas murid.',
-        'Klik "Simpan" untuk menyimpan kelas baru.',
-        'Untuk mengedit, klik ikon pensil (✏️) pada baris kelas.',
-        'Untuk menghapus, klik ikon hapus (🗑️) — pastikan kelas sudah tidak memiliki siswa.',
-      ],
-    },
-    '/admin/verifikasi-spp': {
+    '/admin/spp': {
       title: 'Verifikasi SPP',
       desc: 'Proses verifikasi pembayaran SPP dari wali murid.',
       features: [
@@ -100,7 +88,7 @@ const HELP_CONTENT = {
     },
   },
   guru: {
-    '/guru/dashboard': {
+    '/guru': {
       title: 'Dashboard Guru',
       desc: 'Ringkasan aktivitas dan informasi kelas.',
       features: [
@@ -115,8 +103,8 @@ const HELP_CONTENT = {
         'Gunakan menu sidebar untuk berpindah ke fitur lain (Absensi, Perkembangan, dll).',
       ],
     },
-    '/guru/absensi': {
-      title: 'Kelola Absensi',
+    '/guru/absen': {
+      title: 'Absensi Harian',
       desc: 'Input dan kelola kehadiran siswa harian.',
       features: [
         { icon: '📅', label: 'Pilih Tanggal', desc: 'Pilih tanggal untuk melihat atau mengisi absensi hari tersebut.' },
@@ -133,8 +121,8 @@ const HELP_CONTENT = {
         'Jika tanggal sudah pernah diisi, data lama akan diperbarui otomatis (tidak duplikat).',
       ],
     },
-    '/guru/perkembangan': {
-      title: 'Perkembangan Akademik (Calistung)',
+    '/guru/nilai': {
+      title: 'Perkembangan Calistung',
       desc: 'Input laporan perkembangan mingguan tiap siswa.',
       features: [
         { icon: '📖', label: 'Membaca', desc: 'Catat tingkat kemampuan membaca siswa (Belum Bisa / Bisa / Lancar).' },
@@ -154,7 +142,7 @@ const HELP_CONTENT = {
     },
     '/guru/mengaji': {
       title: 'Catatan Mengaji',
-      desc: 'Rekam perkembangan mengaji (Iqra/Al-Qur\'an) tiap siswa.',
+      desc: "Rekam perkembangan mengaji (Iqra/Al-Qur'an) tiap siswa.",
       features: [
         { icon: '📖', label: 'Input Catatan', desc: 'Catat halaman dan progress mengaji siswa (contoh: Iqra 3 Hal. 12).' },
         { icon: '📅', label: 'Tanggal Otomatis', desc: 'Tanggal hari ini dipakai secara default, bisa diubah.' },
@@ -162,14 +150,14 @@ const HELP_CONTENT = {
       ],
       steps: [
         'Pilih siswa dari dropdown daftar siswa kelas Anda.',
-        'Isi catatan mengaji, contoh: "Iqra 3 Halaman 15" atau "Al-Qur\'an Juz 1 Hal. 5".',
+        "Isi catatan mengaji, contoh: \"Iqra 3 Halaman 15\" atau \"Al-Qur'an Juz 1 Hal. 5\".",
         'Pilih tanggal (default: hari ini, bisa diubah ke tanggal lain).',
         'Klik "Simpan" untuk menyimpan catatan.',
         'Orang tua akan otomatis mendapat notifikasi bahwa ada catatan mengaji baru.',
         'Riwayat catatan mengaji tampil di tabel bawah, diurutkan dari yang terbaru.',
       ],
     },
-    '/guru/kegiatan': {
+    '/guru/jadwal': {
       title: 'Kegiatan Luar Sekolah',
       desc: 'Kelola informasi kegiatan ekstrakurikuler dan event sekolah.',
       features: [
@@ -190,7 +178,7 @@ const HELP_CONTENT = {
     },
   },
   orangtua: {
-    '/orangtua/dashboard': {
+    '/orangtua': {
       title: 'Dashboard Orang Tua',
       desc: 'Informasi perkembangan anak Anda secara keseluruhan.',
       features: [
@@ -207,8 +195,8 @@ const HELP_CONTENT = {
         'Gunakan menu sidebar untuk mengakses halaman lainnya.',
       ],
     },
-    '/orangtua/profil-anak': {
-      title: 'Profil Anak',
+    '/orangtua/profile': {
+      title: 'Biodata Anak',
       desc: 'Data lengkap dan informasi pribadi anak.',
       features: [
         { icon: '👤', label: 'Data Pribadi', desc: 'Lihat dan perbarui informasi dasar anak (TTL, agama, dll).' },
@@ -217,7 +205,7 @@ const HELP_CONTENT = {
         { icon: '💾', label: 'Simpan Perubahan', desc: 'Semua perubahan langsung tersimpan ke database sekolah.' },
       ],
       steps: [
-        'Buka halaman Profil Anak dari menu sidebar.',
+        'Buka halaman Biodata Anak dari menu sidebar.',
         'Di tab "Data Pribadi", perbarui nama panggilan, tempat/tanggal lahir, agama, dan kewarganegaraan.',
         'Pindah ke tab "Alamat" untuk mengisi alamat lengkap dan nomor telepon orang tua.',
         'Di tab "Data Tambahan", isi hobi, cita-cita, golongan darah, berat/tinggi badan, dan riwayat imunisasi.',
@@ -225,62 +213,34 @@ const HELP_CONTENT = {
         'Klik "Simpan Perubahan" — data langsung tersimpan ke database sekolah.',
       ],
     },
-    '/orangtua/perkembangan': {
-      title: 'Perkembangan Akademik',
-      desc: 'Laporan perkembangan Calistung anak dari guru.',
+    '/orangtua/progress': {
+      title: 'Perkembangan Anak',
+      desc: 'Laporan perkembangan Calistung dan catatan mengaji anak dari guru.',
       features: [
-        { icon: '📖', label: 'Laporan Mingguan', desc: 'Lihat nilai membaca, berhitung, dan menulis per minggu.' },
+        { icon: '📖', label: 'Laporan Calistung', desc: 'Lihat nilai membaca, berhitung, dan menulis per minggu.' },
+        { icon: '🕌', label: 'Catatan Mengaji', desc: 'Rekam jejak progress mengaji Iqra/Al-Qur\'an anak.' },
         { icon: '📅', label: 'Riwayat Lengkap', desc: 'Semua laporan tersimpan dan bisa dilihat kapan saja.' },
         { icon: '📝', label: 'Catatan Guru', desc: 'Baca catatan dan komentar dari guru untuk anak Anda.' },
       ],
       steps: [
-        'Buka halaman "Perkembangan" dari menu sidebar.',
-        'Laporan akan tampil berurutan dari yang terbaru.',
-        'Setiap kartu laporan menampilkan: minggu ke, bulan/tahun, dan penilaian Membaca, Berhitung, Menulis.',
-        'Baca kolom "Catatan" untuk komentar tambahan dari guru.',
+        'Buka halaman "Perkembangan Anak" dari menu sidebar.',
+        'Pilih tab "Calistung" untuk melihat laporan membaca, berhitung, dan menulis.',
+        'Setiap kartu laporan menampilkan: minggu ke, bulan/tahun, nilai, dan catatan guru.',
+        'Pilih tab "Mengaji" untuk melihat catatan perkembangan mengaji anak.',
+        'Setiap catatan mengaji menampilkan tanggal dan progress (contoh: Iqra 3 Halaman 15).',
         'Anda akan mendapat notifikasi otomatis setiap kali guru menginput laporan baru.',
       ],
     },
-    '/orangtua/mengaji': {
-      title: 'Catatan Mengaji',
-      desc: 'Rekam jejak perkembangan mengaji anak.',
-      features: [
-        { icon: '📖', label: 'Progress Iqra', desc: 'Lihat catatan halaman dan buku Iqra/Al-Qur\'an yang sedang dipelajari.' },
-        { icon: '📅', label: 'Riwayat Tanggal', desc: 'Semua catatan disusun berdasarkan tanggal terbaru.' },
-      ],
-      steps: [
-        'Buka halaman "Mengaji" dari menu sidebar.',
-        'Daftar catatan mengaji akan tampil berurutan dari yang terbaru.',
-        'Setiap catatan menampilkan: tanggal, dan isi catatan guru (contoh: "Iqra 3 Halaman 15").',
-        'Anda akan mendapat notifikasi otomatis setiap kali guru menginput catatan mengaji baru.',
-      ],
-    },
-    '/orangtua/absensi': {
-      title: 'Absensi Anak',
-      desc: 'Rekap kehadiran anak di sekolah.',
-      features: [
-        { icon: '✅', label: 'Status Harian', desc: 'Lihat status kehadiran: Hadir, Sakit, Izin, atau Alfa.' },
-        { icon: '📝', label: 'Keterangan', desc: 'Baca keterangan yang diberikan guru untuk ketidakhadiran.' },
-        { icon: '📅', label: 'Riwayat Lengkap', desc: 'Semua data absensi selama satu tahun ajaran tersimpan.' },
-      ],
-      steps: [
-        'Buka halaman "Absensi" dari menu sidebar.',
-        'Tabel absensi menampilkan seluruh rekap kehadiran anak dari yang terbaru.',
-        'Kolom "Status" menunjukkan: Hadir (hijau), Sakit (kuning), Izin (biru), atau Alfa (merah).',
-        'Kolom "Keterangan" berisi catatan dari guru jika anak tidak hadir.',
-        'Data absensi sepanjang tahun ajaran tersimpan dan bisa dilihat kapan saja.',
-      ],
-    },
-    '/orangtua/kegiatan': {
-      title: 'Kegiatan Sekolah',
-      desc: 'Informasi kegiatan dan event sekolah.',
+    '/orangtua/reports': {
+      title: 'Kegiatan Luar Sekolah',
+      desc: 'Informasi kegiatan dan event yang diselenggarakan sekolah.',
       features: [
         { icon: '🎉', label: 'Daftar Kegiatan', desc: 'Lihat seluruh kegiatan luar sekolah yang diposting guru.' },
         { icon: '🖼️', label: 'Foto Kegiatan', desc: 'Lihat dokumentasi foto dari setiap kegiatan sekolah.' },
       ],
       steps: [
-        'Buka halaman "Kegiatan" dari menu sidebar.',
-        'Seluruh kegiatan luar sekolah tampil sebagai kartu, diurutkan dari yang terbaru.',
+        'Buka halaman "Kegiatan Luar Sekolah" dari menu sidebar.',
+        'Seluruh kegiatan tampil sebagai kartu, diurutkan dari yang terbaru.',
         'Setiap kartu menampilkan: judul kegiatan, tanggal, deskripsi, dan foto (jika ada).',
         'Anda akan mendapat notifikasi otomatis setiap kali ada kegiatan baru ditambahkan.',
       ],
@@ -295,7 +255,7 @@ const HELP_CONTENT = {
         { icon: '🔔', label: 'Notifikasi', desc: 'Admin mendapat notifikasi otomatis setiap Anda mengunggah bukti bayar.' },
       ],
       steps: [
-        'Buka halaman "SPP" dari menu sidebar.',
+        'Buka halaman "Pembayaran SPP" dari menu sidebar.',
         'Pilih tahun ajaran dari dropdown untuk melihat tagihan 12 bulan.',
         'Lihat status tiap bulan: "Belum Lunas" (merah), "Menunggu Verifikasi" (kuning), atau "Lunas" (hijau).',
         'Untuk membayar, klik tombol "Upload Bukti" pada bulan yang ingin dibayar.',
@@ -641,6 +601,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           <Outlet />
         </div>
       </main>
+
       {/* ── Help Panel ── */}
       {showHelp && (() => {
         const roleKey = role === 'orangtua' ? 'orangtua' : role;
