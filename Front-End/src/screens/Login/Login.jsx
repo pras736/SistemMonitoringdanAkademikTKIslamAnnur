@@ -26,6 +26,7 @@ const Login = () => {
       const { token, role } = response.data;
 
       // Store token securely in production
+      localStorage.removeItem('profilePhoto');
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
 

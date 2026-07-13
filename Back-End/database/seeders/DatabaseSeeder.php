@@ -358,28 +358,53 @@ class DatabaseSeeder extends Seeder
                 'tanggal' => '2026-06-15',
             ]);
 
-            // Create SPP (Juni & Juli)
-            Spp::create([
-                'id_anak' => $anak->id_anak,
-                'id_admin' => $adminProfile->id_admin,
-                'bulan' => 'Juni',
-                'tahun' => '2026',
-                'nominal' => 350000.00,
-                'bukti_transfer' => 'spp/bukti_dummy.png',
-                'status_pembayaran' => 'Lunas',
-                'tanggal_bayar' => '2026-06-02',
-                'tanggal_verifikasi' => '2026-06-03',
-            ]);
-            Spp::create([
-                'id_anak' => $anak->id_anak,
-                'id_admin' => null,
-                'bulan' => 'Juli',
-                'tahun' => '2026',
-                'nominal' => 350000.00,
-                'bukti_transfer' => ($index % 3 === 0) ? 'spp/bukti_dummy_juli.png' : null,
-                'status_pembayaran' => ($index % 3 === 0) ? 'Menunggu Verifikasi' : 'Belum Lunas',
-                'tanggal_bayar' => ($index % 3 === 0) ? '2026-07-02' : null,
-            ]);
+            // Create 12 months SPP for the Indonesian academic year (Juli 2026 - Juni 2027)
+            $months = [
+                ['bulan' => 'Juli', 'tahun' => '2026'],
+                ['bulan' => 'Agustus', 'tahun' => '2026'],
+                ['bulan' => 'September', 'tahun' => '2026'],
+                ['bulan' => 'Oktober', 'tahun' => '2026'],
+                ['bulan' => 'November', 'tahun' => '2026'],
+                ['bulan' => 'Desember', 'tahun' => '2026'],
+                ['bulan' => 'Januari', 'tahun' => '2027'],
+                ['bulan' => 'Februari', 'tahun' => '2027'],
+                ['bulan' => 'Maret', 'tahun' => '2027'],
+                ['bulan' => 'April', 'tahun' => '2027'],
+                ['bulan' => 'Mei', 'tahun' => '2027'],
+                ['bulan' => 'Juni', 'tahun' => '2027'],
+            ];
+
+            foreach ($months as $mIdx => $m) {
+                $status = 'Belum Lunas';
+                $bukti = null;
+                $tglBayar = null;
+                $tglVerif = null;
+                $adminId = null;
+
+                if ($mIdx < 2) { // July and August are Lunas
+                    $status = 'Lunas';
+                    $bukti = 'spp/bukti_dummy.png';
+                    $tglBayar = $m['tahun'] . '-' . ($m['bulan'] === 'Juli' ? '07' : '08') . '-05';
+                    $tglVerif = $m['tahun'] . '-' . ($m['bulan'] === 'Juli' ? '07' : '08') . '-06';
+                    $adminId = $adminProfile->id_admin;
+                } elseif ($mIdx === 2 && $index % 3 === 0) { // September has pending transfers
+                    $status = 'Menunggu Verifikasi';
+                    $bukti = 'spp/bukti_dummy.png';
+                    $tglBayar = $m['tahun'] . '-09-05';
+                }
+
+                Spp::create([
+                    'id_anak' => $anak->id_anak,
+                    'id_admin' => $adminId,
+                    'bulan' => $m['bulan'],
+                    'tahun' => $m['tahun'],
+                    'nominal' => 330000.00,
+                    'bukti_transfer' => $bukti,
+                    'status_pembayaran' => $status,
+                    'tanggal_bayar' => $tglBayar,
+                    'tanggal_verifikasi' => $tglVerif,
+                ]);
+            }
         }
 
         // 4. Seed Kegiatan Sekolah
@@ -395,6 +420,35 @@ class DatabaseSeeder extends Seeder
             'deskripsi' => 'Kegiatan kreativitas menggambar dan mewarnai tingkat TK se-Pekanbaru.',
             'tanggal' => '2026-06-12',
             'foto' => null,
+        ]);
+
+        // 5. Seed Notifications
+        // Admin notifications
+        \App\Models\Notification::create([
+            'id_user' => 1,
+            'title' => 'Pembayaran SPP Baru',
+            'message' => 'Wali murid dari Aisyah Humaira telah mengunggah bukti pembayaran SPP untuk September 2026.',
+            'is_read' => false,
+        ]);
+
+        // Parent notifications (orangtua - user 5, parent of Aisyah Humaira)
+        \App\Models\Notification::create([
+            'id_user' => 5,
+            'title' => 'Kegiatan Sekolah Baru',
+            'message' => 'Ada kegiatan luar sekolah baru: Kunjungan Edukatif Kebun Binatang Kasang Kulim pada tanggal 2026-06-10.',
+            'is_read' => false,
+        ]);
+        \App\Models\Notification::create([
+            'id_user' => 5,
+            'title' => 'Laporan Calistung Baru',
+            'message' => 'Laporan perkembangan akademik (Calistung) baru untuk Aisyah Humaira (Minggu Ke-2, Juni 2026) telah diinput oleh Guru.',
+            'is_read' => false,
+        ]);
+        \App\Models\Notification::create([
+            'id_user' => 5,
+            'title' => 'Catatan Mengaji Baru',
+            'message' => 'Catatan mengaji baru untuk Aisyah Humaira telah diinput oleh Guru pada tanggal 2026-06-15: Iqra 3 Halaman 10.',
+            'is_read' => true,
         ]);
     }
 }

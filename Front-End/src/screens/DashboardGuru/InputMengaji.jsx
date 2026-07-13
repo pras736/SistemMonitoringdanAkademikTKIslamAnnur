@@ -11,6 +11,7 @@ export const InputMengaji = () => {
 
   // Form states
   const [idAnak, setIdAnak] = useState('');
+  const [tingkat, setTingkat] = useState('Iqra 1');
   const [catatan, setCatatan] = useState('');
   const [tanggal, setTanggal] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
@@ -51,7 +52,7 @@ export const InputMengaji = () => {
     try {
       await axios.post(`${API_BASE}/guru/mengaji`, {
         id_anak: parseInt(idAnak),
-        catatan,
+        catatan: `${tingkat} - ${catatan}`,
         tanggal
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -107,11 +108,24 @@ export const InputMengaji = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-tk-text">Catatan Perkembangan (Iqra / Surah)</label>
+            <label className="text-sm font-semibold text-tk-text">Tingkat</label>
+            <select value={tingkat} onChange={(e) => setTingkat(e.target.value)} className="p-2 border border-tk-border rounded-md bg-white focus:border-tk-primary outline-none">
+              <option value="Iqra 1">Iqra 1</option>
+              <option value="Iqra 2">Iqra 2</option>
+              <option value="Iqra 3">Iqra 3</option>
+              <option value="Iqra 4">Iqra 4</option>
+              <option value="Iqra 5">Iqra 5</option>
+              <option value="Iqra 6">Iqra 6</option>
+              <option value="Al-Qur'an">Al-Qur'an</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-tk-text">Catatan Perkembangan (Hafalan / Surah)</label>
             <textarea 
               required 
               rows="3" 
-              placeholder="Contoh: Iqra 4 Halaman 12 (Lancar membaca mad tobi'i)" 
+              placeholder="Contoh: Halaman 12 (Lancar membaca mad tobi'i)" 
               value={catatan} 
               onChange={(e) => setCatatan(e.target.value)} 
               className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none font-sans"
@@ -141,8 +155,16 @@ export const InputMengaji = () => {
                     <td colSpan="3" className="p-6 text-center text-tk-muted">Belum ada riwayat mengaji.</td>
                   </tr>
                 ) : (
-                  history.map((item) => (
-                    <tr key={item.id_kart} className="hover:bg-tk-bg/50">
+                  history.map((item) => {
+                    let tingkat = '-';
+                    let hafalan = item.catatan;
+                    if (item.catatan && item.catatan.includes(' - ')) {
+                      const parts = item.catatan.split(' - ');
+                      tingkat = parts[0];
+                      hafalan = parts.slice(1).join(' - ');
+                    }
+                    return (
+                    <tr key={item.id_kartu} className="hover:bg-tk-bg/50">
                       <td className="p-4 border-b border-tk-border font-medium text-tk-muted text-sm">
                         {item.tanggal ? item.tanggal.split('T')[0] : '-'}
                       </td>
@@ -150,10 +172,14 @@ export const InputMengaji = () => {
                         {item.anak?.nama_lengkap}
                       </td>
                       <td className="p-4 border-b border-tk-border text-tk-text font-medium">
-                        {item.catatan}
+                        <div className="flex flex-col gap-1">
+                          {tingkat !== '-' && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#E0F2FE] text-[#0369A1] w-fit border border-[#BAE6FD]">{tingkat}</span>}
+                          <span>{hafalan}</span>
+                        </div>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>

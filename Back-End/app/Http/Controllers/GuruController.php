@@ -8,7 +8,11 @@ use App\Models\PerkembanganAkademik;
 use App\Models\KartuNgaji;
 use App\Models\Anak;
 use App\Models\Guru;
+use App\Models\Notification;
+use App\Models\User;
+use App\Models\OrangTua;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class GuruController extends Controller
@@ -51,35 +55,45 @@ class GuruController extends Controller
     public function storeAbsensi(Request $request)
     {
         $request->validate([
-            'tanggal' => 'required|date',
-            'absensi' => 'required|array',
-            'absensi.*.id_anak' => 'required|exists:anaks,id_anak',
-            'absensi.*.status' => 'required|in:hadir,sakit,izin,alfa',
-            'absensi.*.keterangan' => 'nullable|string',
+            'tanggal'              => 'required|date',
+            'absensi'              => 'required|array',
+            'absensi.*.id_anak'   => 'required|exists:anaks,id_anak',
+            'absensi.*.status'    => 'required|in:hadir,sakit,izin,alfa',
+            'absensi.*.keterangan'=> 'nullable|string',
         ]);
 
-        $guru = $this->getGuru($request);
+        $guru    = $this->getGuru($request);
         if (!$guru) {
             return response()->json(['message' => 'Profile guru tidak ditemukan'], 404);
         }
 
         $tanggal = $request->tanggal;
-        $saved = [];
+        $now     = now();
 
-        foreach ($request->absensi as $item) {
-            $abs = Absensi::updateOrCreate(
-                [
-                    'id_anak' => $item['id_anak'],
-                    'tanggal' => $tanggal,
-                ],
-                [
-                    'id_guru' => $guru->id_guru,
-                    'status' => $item['status'],
-                    'keterangan' => $item['keterangan'] ?? null,
-                ]
-            );
-            $saved[] = $abs;
-        }
+        // Fix N+1: delete existing records for this guru+date, then bulk insert
+        // (was: 1 SELECT + 1 INSERT/UPDATE per student = 50 queries for 25 students)
+        DB::table('absensis')
+            ->where('id_guru', $guru->id_guru)
+            ->where('tanggal', $tanggal)
+            ->delete();
+
+        $records = array_map(fn($item) => [
+            'id_anak'    => $item['id_anak'],
+            'id_guru'    => $guru->id_guru,
+            'tanggal'    => $tanggal,
+            'status'     => $item['status'],
+            'keterangan' => $item['keterangan'] ?? null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $request->absensi);
+
+        Absensi::insert($records);
+
+        // Fetch the freshly inserted records to return (same response structure)
+        $saved = Absensi::with('anak')
+            ->where('id_guru', $guru->id_guru)
+            ->where('tanggal', $tanggal)
+            ->get();
 
         return response()->json(['message' => 'Absensi berhasil disimpan', 'data' => $saved]);
     }
@@ -91,8 +105,8 @@ class GuruController extends Controller
     {
         $request->validate([
             'minggu_ke' => 'required|integer',
-            'bulan' => 'required|string',
-            'tahun' => 'required|string',
+            'bulan'     => 'required|string',
+            'tahun'     => 'required|string',
         ]);
 
         $guru = $this->getGuru($request);
@@ -111,14 +125,14 @@ class GuruController extends Controller
     public function storePerkembangan(Request $request)
     {
         $request->validate([
-            'id_anak' => 'required|exists:anaks,id_anak',
+            'id_anak'   => 'required|exists:anaks,id_anak',
             'minggu_ke' => 'required|integer',
-            'bulan' => 'required|string',
-            'tahun' => 'required|string',
-            'membaca' => 'required|string',
+            'bulan'     => 'required|string',
+            'tahun'     => 'required|string',
+            'membaca'   => 'required|string',
             'berhitung' => 'required|string',
-            'menulis' => 'required|string',
-            'catatan' => 'nullable|string',
+            'menulis'   => 'required|string',
+            'catatan'   => 'nullable|string',
         ]);
 
         $guru = $this->getGuru($request);
@@ -126,19 +140,36 @@ class GuruController extends Controller
 
         $perkembangan = PerkembanganAkademik::updateOrCreate(
             [
-                'id_anak' => $request->id_anak,
+                'id_anak'   => $request->id_anak,
                 'minggu_ke' => $request->minggu_ke,
-                'bulan' => $request->bulan,
-                'tahun' => $request->tahun,
+                'bulan'     => $request->bulan,
+                'tahun'     => $request->tahun,
             ],
             [
-                'id_guru' => $guru->id_guru,
-                'membaca' => $request->membaca,
+                'id_guru'   => $guru->id_guru,
+                'membaca'   => $request->membaca,
                 'berhitung' => $request->berhitung,
-                'menulis' => $request->menulis,
-                'catatan' => $request->catatan,
+                'menulis'   => $request->menulis,
+                'catatan'   => $request->catatan,
             ]
         );
+
+        // Fix N+1: Get child name in 1 query, batch insert notifications
+        $anakNama = Anak::where('id_anak', $request->id_anak)->value('nama_lengkap') ?? 'Anak';
+        $ortus    = OrangTua::where('id_anak', $request->id_anak)->get(['id_user']);
+
+        if ($ortus->isNotEmpty()) {
+            $now        = now();
+            $notifBatch = $ortus->map(fn($ortu) => [
+                'id_user'    => $ortu->id_user,
+                'title'      => 'Laporan Calistung Baru',
+                'message'    => 'Laporan perkembangan akademik (Calistung) baru untuk ' . $anakNama . ' (Minggu Ke-' . $perkembangan->minggu_ke . ', ' . $perkembangan->bulan . ' ' . $perkembangan->tahun . ') telah diinput oleh Guru.',
+                'is_read'    => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
+            Notification::insert($notifBatch);
+        }
 
         return response()->json(['message' => 'Perkembangan akademik berhasil disimpan', 'data' => $perkembangan]);
     }
@@ -177,6 +208,23 @@ class GuruController extends Controller
             'tanggal' => $request->tanggal,
         ]);
 
+        // Fix N+1: Get child name in 1 query, batch insert notifications
+        $anakNama = Anak::where('id_anak', $request->id_anak)->value('nama_lengkap') ?? 'Anak';
+        $ortus    = OrangTua::where('id_anak', $request->id_anak)->get(['id_user']);
+
+        if ($ortus->isNotEmpty()) {
+            $now        = now();
+            $notifBatch = $ortus->map(fn($ortu) => [
+                'id_user'    => $ortu->id_user,
+                'title'      => 'Catatan Mengaji Baru',
+                'message'    => 'Catatan mengaji baru untuk ' . $anakNama . ' telah diinput oleh Guru pada tanggal ' . $mengaji->tanggal . ': ' . $mengaji->catatan . '.',
+                'is_read'    => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
+            Notification::insert($notifBatch);
+        }
+
         return response()->json(['message' => 'Catatan mengaji berhasil ditambahkan', 'data' => $mengaji]);
     }
 
@@ -191,10 +239,10 @@ class GuruController extends Controller
     public function storeKegiatan(Request $request)
     {
         $request->validate([
-            'judul' => 'required|string',
-            'deskripsi' => 'required|string',
-            'tanggal' => 'required|date',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'judul'    => 'required|string',
+            'deskripsi'=> 'required|string',
+            'tanggal'  => 'required|date',
+            'foto'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $fotoPath = null;
@@ -203,11 +251,27 @@ class GuruController extends Controller
         }
 
         $kegiatan = Kegiatan::create([
-            'judul' => $request->judul,
-            'deskripsi' => $request->deskripsi,
-            'tanggal' => $request->tanggal,
-            'foto' => $fotoPath,
+            'judul'    => $request->judul,
+            'deskripsi'=> $request->deskripsi,
+            'tanggal'  => $request->tanggal,
+            'foto'     => $fotoPath,
         ]);
+
+        // Fix N+1: pluck only id_user (1 query), then batch insert notifications
+        $parentIds = User::where('role', 'orangtua')->pluck('id_user');
+
+        if ($parentIds->isNotEmpty()) {
+            $now        = now();
+            $notifBatch = $parentIds->map(fn($userId) => [
+                'id_user'    => $userId,
+                'title'      => 'Kegiatan Sekolah Baru',
+                'message'    => 'Ada kegiatan luar sekolah baru: ' . $kegiatan->judul . ' pada tanggal ' . $kegiatan->tanggal . '.',
+                'is_read'    => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
+            Notification::insert($notifBatch);
+        }
 
         return response()->json(['message' => 'Kegiatan luar sekolah berhasil ditambahkan', 'data' => $kegiatan]);
     }

@@ -1,111 +1,194 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Icons } from '../../components/Icons';
 import student2Avatar from '../../assets/student_avatar_2.png';
 
 const DashboardOrangtua = () => {
+  const navigate = useNavigate();
+  const [profilePhoto, setProfilePhoto] = useState(student2Avatar);
+  const [parentProfile, setParentProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [academicList, setAcademicList] = useState([]);
+  const [ngajiList, setNgajiList] = useState([]);
+  const [absensiList, setAbsensiList] = useState([]);
+  const [sppList, setSppList] = useState([]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        // 1. Fetch user profile
+        const profileRes = await axios.get('http://127.0.0.1:8000/api/user', { headers });
+        setParentProfile(profileRes.data);
+        
+        const foto = profileRes.data.user?.foto_profil;
+        if (foto) {
+          setProfilePhoto(`http://127.0.0.1:8000/storage/${foto}`);
+        }
+
+        // 2. Fetch student logs and progress
+        const [academicRes, ngajiRes, absensiRes, sppRes] = await Promise.all([
+          axios.get('http://127.0.0.1:8000/api/wali/anak/akademik', { headers }),
+          axios.get('http://127.0.0.1:8000/api/wali/anak/mengaji', { headers }),
+          axios.get('http://127.0.0.1:8000/api/wali/anak/absensi', { headers }),
+          axios.get('http://127.0.0.1:8000/api/wali/spp', { headers }),
+        ]);
+
+        setAcademicList(academicRes.data);
+        setNgajiList(ngajiRes.data);
+        setAbsensiList(absensiRes.data);
+        setSppList(sppRes.data);
+      } catch (err) {
+        console.error('Error loading dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center font-semibold text-tk-muted">
+        Memuat data dashboard...
+      </div>
+    );
+  }
+
+  // Derive latest records
+  const latestAcademic = academicList[0] || null;
+  const latestNgaji = ngajiList[0] || null;
+  const latestAbsensi = absensiList[0] || null;
+  const activeSPP = sppList.find(s => s.status_pembayaran === 'Belum Lunas' || s.status_pembayaran === 'Menunggu Verifikasi') || sppList[0] || null;
+
+  const childName = parentProfile?.profile?.anak?.nama_lengkap || 'Anak';
+  const ayah = parentProfile?.profile?.nama_ayah;
+  const ibu = parentProfile?.profile?.nama_ibu;
+  const parentName = ayah || ibu ? `${ayah || ''}${ayah && ibu ? ' / ' : ''}${ibu || ''}` : 'Bapak/Ibu Wali Murid';
+
   return (
     <div className="flex flex-col gap-8">
       {/* Welcome Banner */}
       <div className="bg-tk-secondary-light rounded-2xl p-12 md:px-16 flex justify-between items-center relative overflow-hidden">
-        <div className="relative z-10 max-w-[50%]">
+        <div className="relative z-10 max-w-[60%]">
           <span className="inline-block bg-tk-primary text-white px-4 py-2 rounded-full font-semibold text-[0.85rem] mb-6">Welcome Back!</span>
-          <h1 className="text-3xl text-tk-primary font-bold mb-3">Assalamualaikum, Bapak/Ibu</h1>
-          <p className="text-tk-text font-medium m-0">Ayo cek perkembangan buah hati anda disini</p>
+          <h1 className="text-2xl md:text-3xl text-tk-primary font-bold mb-3">Assalamualaikum, {parentName}</h1>
+          <p className="text-tk-text font-medium m-0">Ayo cek perkembangan buah hati Anda ({childName}) di sini.</p>
         </div>
         <div className="absolute right-16 bottom-0 w-[280px] h-[280px] rounded-t-3xl overflow-hidden shadow-lg border-4 border-b-0 border-white translate-y-4">
-          <img src={student2Avatar} alt="Student" className="w-full h-full object-cover" />
+          <img src={profilePhoto} alt="Student" className="w-full h-full object-cover" />
         </div>
       </div>
 
       {/* Main Widgets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Academic Progress */}
-        <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-10 h-10 rounded-md bg-tk-secondary-light text-tk-primary flex items-center justify-center"><Icons.Book /></div>
-            <h2 className="text-[1.1rem] font-semibold m-0">Proses Akademik</h2>
-          </div>
-          
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-[0.9rem] font-medium">
-                <span>Phonics & Literacy</span>
-                <span>85%</span>
-              </div>
-              <div className="w-full h-2 bg-tk-border rounded-full overflow-hidden">
-                <div className="h-full bg-tk-secondary rounded-full" style={{ width: '85%' }}></div>
-              </div>
+        <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-10 h-10 rounded-md bg-tk-secondary-light text-tk-primary flex items-center justify-center"><Icons.Book /></div>
+              <h2 className="text-[1.1rem] font-semibold m-0">Proses Akademik</h2>
             </div>
             
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-[0.9rem] font-medium">
-                <span>Early Mathematics</span>
-                <span>92%</span>
+            {latestAcademic ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-center text-[0.9rem] font-semibold">
+                  <span className="text-tk-text">Membaca</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E0F2FE] text-[#0369A1]">{latestAcademic.membaca}</span>
+                </div>
+                <div className="flex justify-between items-center text-[0.9rem] font-semibold">
+                  <span className="text-tk-text">Menulis</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FCE7F3] text-[#BE185D]">{latestAcademic.menulis}</span>
+                </div>
+                <div className="flex justify-between items-center text-[0.9rem] font-semibold">
+                  <span className="text-tk-text">Berhitung</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#B45309]">{latestAcademic.berhitung}</span>
+                </div>
               </div>
-              <div className="w-full h-2 bg-tk-border rounded-full overflow-hidden">
-                <div className="h-full bg-tk-secondary rounded-full" style={{ width: '92%' }}></div>
+            ) : (
+              <div className="text-center p-6 text-tk-muted text-sm font-semibold">
+                Belum ada laporan calistung
               </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between text-[0.9rem] font-medium">
-                <span>Creative Arts</span>
-                <span>78%</span>
-              </div>
-              <div className="w-full h-2 bg-tk-border rounded-full overflow-hidden">
-                <div className="h-full bg-tk-secondary rounded-full" style={{ width: '78%' }}></div>
-              </div>
-            </div>
+            )}
           </div>
+          {latestAcademic && (
+            <span className="text-[0.7rem] text-tk-muted mt-4 text-right block border-t border-tk-border/50 pt-2">
+              Laporan: Minggu ke-{latestAcademic.minggu_ke}, {latestAcademic.bulan} {latestAcademic.tahun}
+            </span>
+          )}
         </div>
 
         {/* Catatan Mengaji */}
-        <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-10 h-10 rounded-md bg-[#FEF3C7] text-[#D97706] flex items-center justify-center"><Icons.Book /></div>
-            <h2 className="text-[1.1rem] font-semibold m-0">Catatan Mengaji</h2>
-          </div>
-          
-          <div className="flex justify-center mb-6">
-            <div className="w-[140px] h-[140px] rounded-full flex items-center justify-center" style={{ background: 'conic-gradient(#A3B18A 70%, #E2E8DF 0)' }}>
-              <div className="w-[120px] h-[120px] bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
-                <span className="text-2xl font-bold text-tk-primary">70%</span>
-                <span className="text-[0.65rem] font-semibold text-tk-muted mt-1">COMPLETE</span>
+        <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-10 h-10 rounded-md bg-[#FEF3C7] text-[#D97706] flex items-center justify-center"><Icons.Book /></div>
+              <h2 className="text-[1.1rem] font-semibold m-0">Catatan Mengaji</h2>
+            </div>
+            
+            {latestNgaji ? (
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-[#FEF3C7] text-[#D97706] flex items-center justify-center mb-4">
+                  <Icons.Book />
+                </div>
+                <p className="text-xs text-tk-muted m-0 uppercase font-bold tracking-wider">Halaman / Surah Terakhir</p>
+                <h3 className="text-xl font-bold text-tk-primary mt-1 mb-2">{latestNgaji.catatan}</h3>
               </div>
-            </div>
+            ) : (
+              <div className="text-center p-6 text-tk-muted text-sm font-semibold">
+                Belum ada catatan mengaji
+              </div>
+            )}
           </div>
-
-          <div className="text-center">
-            <p className="text-[0.85rem] text-tk-muted m-0">Current Stage:</p>
-            <p className="font-semibold text-tk-text my-1 m-0">Iqra 3 - Page 14</p>
-            <div className="flex justify-center text-[#FBBF24]">
-              <Icons.Chart />
-            </div>
-          </div>
+          {latestNgaji && (
+            <span className="text-[0.7rem] text-tk-muted mt-4 text-right block border-t border-tk-border/50 pt-2">
+              Tanggal: {new Date(latestNgaji.tanggal).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
+            </span>
+          )}
         </div>
 
         {/* SPP Payment */}
-        <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col">
+        <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col min-h-[300px]">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-10 h-10 rounded-md bg-red-100 text-red-600 flex items-center justify-center"><Icons.Payment /></div>
             <h2 className="text-[1.1rem] font-semibold m-0">SPP</h2>
           </div>
 
-          <div className="bg-[#FAFAFA] border border-tk-border rounded-md p-5 mb-5">
-            <div className="flex justify-between items-center mb-3 text-[0.9rem] font-medium">
-              <span>October 2023</span>
-              <span className="bg-red-100 text-red-600 text-[0.7rem] px-2 py-1 rounded-full font-bold">UNPAID</span>
+          {activeSPP ? (
+            <div className="flex flex-col flex-1 justify-between">
+              <div className="bg-[#FAFAFA] border border-tk-border rounded-md p-5 flex-1 flex flex-col justify-center">
+                <div className="flex justify-between items-center mb-3 text-[0.9rem] font-semibold">
+                  <span>{activeSPP.bulan} {activeSPP.tahun}</span>
+                  <span className={`text-[0.7rem] px-2.5 py-1 rounded-full font-bold ${
+                    activeSPP.status_pembayaran === 'Lunas' ? 'bg-green-100 text-green-700' :
+                    activeSPP.status_pembayaran === 'Menunggu Verifikasi' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-600'
+                  }`}>
+                    {activeSPP.status_pembayaran === 'Belum Lunas' ? 'BELUM BAYAR' : activeSPP.status_pembayaran.toUpperCase()}
+                  </span>
+                </div>
+                <h3 className="text-2xl font-bold m-0 text-tk-primary">Rp {activeSPP.nominal.toLocaleString('id-ID')}</h3>
+                <p className="text-[0.75rem] text-tk-muted mt-1.5 m-0">Tahun Ajaran: 2026/2027</p>
+              </div>
+
+              <button 
+                onClick={() => navigate('/orangtua/spp')}
+                className="bg-tk-primary text-white w-full py-3.5 rounded-md font-bold hover:bg-tk-primary-light transition-colors border-0 cursor-pointer text-sm mt-5"
+              >
+                Bayar / Upload Bukti
+              </button>
             </div>
-            <h3 className="text-2xl font-bold m-0">Rp 1.250.000</h3>
-            <p className="text-[0.85rem] text-tk-muted mt-1 m-0">Due date: Oct 10, 2023</p>
-          </div>
-
-          <button className="bg-tk-primary text-white w-full p-4 rounded-md font-bold mb-5 hover:bg-tk-primary-light transition-colors">Pay Now</button>
-
-          <div className="border border-dashed border-tk-border rounded-md p-6 flex flex-col items-center gap-2 text-tk-muted cursor-pointer bg-[#FAFAFA] hover:bg-tk-border transition-colors">
-            <Icons.Upload />
-            <p className="text-[0.85rem] font-medium m-0">Upload Transfer Proof</p>
-          </div>
+          ) : (
+            <div className="text-center p-6 text-tk-muted text-sm font-semibold flex-1 flex items-center justify-center">
+              Belum ada tagihan SPP
+            </div>
+          )}
         </div>
       </div>
 
@@ -114,43 +197,66 @@ const DashboardOrangtua = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-md bg-tk-secondary-light text-tk-primary flex items-center justify-center"><Icons.User /></div>
-            <h2 className="text-[1.1rem] font-semibold m-0">Log Aktivitas Guru</h2>
+            <h2 className="text-[1.1rem] font-semibold m-0">Log Aktivitas Perkembangan Anak</h2>
           </div>
-          <a href="#" className="text-tk-primary font-semibold text-[0.9rem] hover:underline">View All</a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-md bg-[#FAFAFA] border-l-4 border-[#65A30D] relative">
-            <div className="absolute top-6 right-6 text-[0.8rem] text-tk-muted font-medium">10:30 AM</div>
-            <h3 className="text-base mb-2 pr-16 font-semibold m-0">Morning Circle Time</h3>
-            <p className="text-[0.9rem] text-tk-muted mb-6 leading-relaxed m-0">Aisyah was very active in participating during the...</p>
-            <div className="flex gap-2 flex-wrap">
-              <span className="text-[0.7rem] font-bold px-2.5 py-1 rounded-full bg-[#ECFCCB] text-[#4D7C0F]">LITERACY</span>
-              <span className="text-[0.7rem] font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">SOCIAL</span>
+          {/* Card 1: Akademik */}
+          <div className="p-6 rounded-md bg-[#FAFAFA] border-l-4 border-[#65A30D] relative flex flex-col justify-between min-h-[160px]">
+            <div>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-base font-semibold m-0 text-tk-text">Perkembangan Calistung</h3>
+                <span className="text-[0.7rem] text-tk-muted font-semibold">Akademik</span>
+              </div>
+              <p className="text-[0.85rem] text-tk-muted leading-relaxed m-0 mt-2">
+                {latestAcademic ? latestAcademic.catatan : 'Belum ada catatan akademik terbaru.'}
+              </p>
             </div>
+            {latestAcademic && (
+              <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-[#ECFCCB] text-[#4D7C0F] self-start mt-4 uppercase">
+                Minggu ke-{latestAcademic.minggu_ke} ({latestAcademic.bulan})
+              </span>
+            )}
           </div>
 
-          <div className="p-6 rounded-md bg-[#FAFAFA] border-l-4 border-[#D97706] relative">
-            <div className="absolute top-6 right-6 text-[0.8rem] text-tk-muted font-medium">12:00 PM</div>
-            <h3 className="text-base mb-2 pr-16 font-semibold m-0">Lunch & Etiquette</h3>
-            <p className="text-[0.9rem] text-tk-muted mb-6 leading-relaxed m-0">Successfully finished her vegetables and remembered</p>
-            <div className="flex gap-2 flex-wrap">
-              <span className="text-[0.7rem] font-bold px-2.5 py-1 rounded-full bg-[#FEF3C7] text-[#B45309]">SELF-CARE</span>
+          {/* Card 2: Mengaji */}
+          <div className="p-6 rounded-md bg-[#FAFAFA] border-l-4 border-[#D97706] relative flex flex-col justify-between min-h-[160px]">
+            <div>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-base font-semibold m-0 text-tk-text">Catatan Mengaji</h3>
+                <span className="text-[0.7rem] text-tk-muted font-semibold">Mengaji</span>
+              </div>
+              <p className="text-[0.85rem] text-tk-muted leading-relaxed m-0 mt-2">
+                {latestNgaji ? `Anak telah belajar: ${latestNgaji.catatan}` : 'Belum ada catatan mengaji terbaru.'}
+              </p>
             </div>
+            {latestNgaji && (
+              <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309] self-start mt-4 uppercase">
+                {new Date(latestNgaji.tanggal).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
+              </span>
+            )}
           </div>
 
-          <div className="p-6 rounded-md bg-[#FAFAFA] border-l-4 border-red-600 relative">
-            <div className="absolute top-6 right-6 text-[0.8rem] text-tk-muted font-medium">02:15 PM</div>
-            <h3 className="text-base mb-2 pr-16 font-semibold m-0">Creative Art Project</h3>
-            <p className="text-[0.9rem] text-tk-muted mb-6 leading-relaxed m-0">Created a beautiful butterfly using finger paints. Showed...</p>
-            <div className="flex gap-2 flex-wrap">
-              <span className="text-[0.7rem] font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">ART</span>
-              <span className="text-[0.7rem] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">FINE MOTOR</span>
+          {/* Card 3: Absensi */}
+          <div className="p-6 rounded-md bg-[#FAFAFA] border-l-4 border-red-600 relative flex flex-col justify-between min-h-[160px]">
+            <div>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-base font-semibold m-0 text-tk-text">Kehadiran Terakhir</h3>
+                <span className="text-[0.7rem] text-tk-muted font-semibold">Absensi</span>
+              </div>
+              <p className="text-[0.85rem] text-tk-muted leading-relaxed m-0 mt-2">
+                {latestAbsensi ? `Status kehadiran: ${latestAbsensi.status.toUpperCase()} ${latestAbsensi.keterangan ? `(${latestAbsensi.keterangan})` : ''}` : 'Belum ada catatan kehadiran terbaru.'}
+              </p>
             </div>
+            {latestAbsensi && (
+              <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 self-start mt-4 uppercase">
+                {new Date(latestAbsensi.tanggal).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
+              </span>
+            )}
           </div>
         </div>
       </div>
-
     </div>
   );
 };
