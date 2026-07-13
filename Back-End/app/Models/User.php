@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['username', 'password_hash', 'role', 'is_active'])]
+#[Fillable(['username', 'password_hash', 'role', 'is_active', 'foto_profil'])]
 #[Hidden(['password_hash', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,6 +28,29 @@ class User extends Authenticatable
         return $this->password_hash;
     }
 
+    // ==========================================
+    // RELATIONSHIPS
+    // ==========================================
+    public function admin()
+    {
+        return $this->hasOne(Admin::class, 'id_user', 'id_user');
+    }
+
+    public function guru()
+    {
+        return $this->hasOne(Guru::class, 'id_user', 'id_user');
+    }
+
+    public function orangTua()
+    {
+        return $this->hasOne(OrangTua::class, 'id_user', 'id_user');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'id_user', 'id_user');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -36,7 +59,6 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password_hash' => 'hashed',
             'is_active' => 'boolean',
         ];

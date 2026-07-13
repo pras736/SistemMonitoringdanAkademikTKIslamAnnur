@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Icons } from '../../components/Icons';
+import studentAvatarBoy from '../../assets/student_avatar_1.png';
+import studentAvatarGirl from '../../assets/student_avatar_2.png';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
@@ -41,6 +43,19 @@ export const ManageSiswa = () => {
   const [namaIbu, setNamaIbu] = useState('');
 
   const [error, setError] = useState('');
+
+  // Search, Filter, and Pagination States for Siswa
+  const [searchQuerySiswa, setSearchQuerySiswa] = useState('');
+  const [genderFilter, setGenderFilter] = useState('Semua');
+  const [currentPageSiswa, setCurrentPageSiswa] = useState(1);
+  const itemsPerPageSiswa = 5;
+
+  const [currentPageKelas, setCurrentPageKelas] = useState(1);
+  const itemsPerPageKelas = 5;
+
+  useEffect(() => {
+    setCurrentPageKelas(1);
+  }, [tab]);
 
   const token = localStorage.getItem('token');
 
@@ -161,6 +176,19 @@ export const ManageSiswa = () => {
     setAgama(s.agama || 'Islam');
     setKewarganegaraan(s.kewarganegaraan || 'WNI');
     setIdKelas(s.id_kelas || '');
+
+    const ortu = s.orang_tuas?.[0];
+    if (ortu) {
+      setNamaAyah(ortu.nama_ayah || '');
+      setNamaIbu(ortu.nama_ibu || '');
+      setUsernameOrtu(ortu.user?.username || '');
+    } else {
+      setNamaAyah('');
+      setNamaIbu('');
+      setUsernameOrtu('');
+    }
+    setPasswordOrtu('');
+
     setError('');
     setShowSiswaModal(true);
   };
@@ -180,7 +208,14 @@ export const ManageSiswa = () => {
       agama,
       kewarganegaraan,
       id_kelas: idKelas || null,
+      nama_ayah: namaAyah,
+      nama_ibu: namaIbu,
+      username_ortu: usernameOrtu,
     };
+
+    if (passwordOrtu) {
+      payload.password_ortu = passwordOrtu;
+    }
 
     try {
       if (editingSiswaId) {
@@ -193,11 +228,6 @@ export const ManageSiswa = () => {
           setError('Semua info wali murid wajib diisi untuk siswa baru.');
           return;
         }
-        payload.username_ortu = usernameOrtu;
-        payload.password_ortu = passwordOrtu;
-        payload.nama_ayah = namaAyah;
-        payload.nama_ibu = namaIbu;
-
         await axios.post(`${API_BASE}/admin/siswa`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -241,7 +271,38 @@ export const ManageSiswa = () => {
     }
   };
 
-  if (loading) return <div>Loading data akademik...</div>;
+  const filteredSiswa = siswa.filter((s) => {
+    if (genderFilter !== 'Semua' && s.jenis_kelamin !== genderFilter) {
+      return false;
+    }
+    const query = searchQuerySiswa.toLowerCase();
+    const matchNama = s.nama_lengkap?.toLowerCase().includes(query) || s.nama_panggilan?.toLowerCase().includes(query);
+    const matchNisn = s.nisn?.toLowerCase().includes(query);
+    const matchNik = s.nik?.toLowerCase().includes(query);
+    
+    let matchParents = false;
+    if (s.orang_tuas && s.orang_tuas.length > 0) {
+      matchParents = s.orang_tuas.some(o => 
+        o.nama_ayah?.toLowerCase().includes(query) || o.nama_ibu?.toLowerCase().includes(query)
+      );
+    }
+    
+    return matchNama || matchNisn || matchNik || matchParents;
+  });
+
+  const totalPagesSiswa = Math.ceil(filteredSiswa.length / itemsPerPageSiswa);
+  const paginatedSiswa = filteredSiswa.slice(
+    (currentPageSiswa - 1) * itemsPerPageSiswa,
+    currentPageSiswa * itemsPerPageSiswa
+  );
+
+  const totalPagesKelas = Math.ceil(kelas.length / itemsPerPageKelas);
+  const paginatedKelas = kelas.slice(
+    (currentPageKelas - 1) * itemsPerPageKelas,
+    currentPageKelas * itemsPerPageKelas
+  );
+
+  if (loading) return <div className="flex h-[50vh] items-center justify-center font-semibold text-tk-muted">Loading data akademik...</div>;
 
   return (
     <div className="flex flex-col gap-6">
@@ -273,6 +334,31 @@ export const ManageSiswa = () => {
             </button>
           </div>
 
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-tk-card p-4 rounded-xl border border-tk-border shadow-sm mb-4">
+            <div className="relative flex-1 w-full max-w-md">
+              <input
+                type="text"
+                placeholder="Cari siswa berdasarkan nama, NISN, NIK, atau wali..."
+                value={searchQuerySiswa}
+                onChange={(e) => { setSearchQuerySiswa(e.target.value); setCurrentPageSiswa(1); }}
+                className="w-full px-4 py-2 border border-tk-border rounded-md focus:border-tk-primary outline-none text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+              <span className="text-sm font-semibold text-tk-muted">Filter Gender:</span>
+              <select
+                value={genderFilter}
+                onChange={(e) => { setGenderFilter(e.target.value); setCurrentPageSiswa(1); }}
+                className="p-2 border border-tk-border rounded-md bg-white focus:border-tk-primary outline-none text-sm font-medium"
+              >
+                <option value="Semua">Semua</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+          </div>
+
           <div className="bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden">
             <table className="w-full border-collapse text-left">
               <thead>
@@ -285,47 +371,91 @@ export const ManageSiswa = () => {
                 </tr>
               </thead>
               <tbody>
-                {siswa.length === 0 ? (
+                {paginatedSiswa.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="p-6 text-center text-tk-muted">Belum ada data siswa.</td>
+                    <td colSpan="5" className="p-6 text-center text-tk-muted">Tidak ada data siswa yang cocok.</td>
                   </tr>
                 ) : (
-                  siswa.map((s) => (
-                    <tr key={s.id_anak} className="hover:bg-tk-bg/50">
-                      <td className="p-4 border-b border-tk-border text-[0.85rem]">
-                        <div className="font-medium text-tk-text">NISN: {s.nisn || '-'}</div>
-                        <div className="text-tk-muted">NIK: {s.nik || '-'}</div>
-                      </td>
-                      <td className="p-4 border-b border-tk-border">
-                        <div className="font-semibold text-tk-text">{s.nama_lengkap}</div>
-                        <div className="text-xs text-tk-muted">Panggilan: {s.nama_panggilan || '-'} | {s.jenis_kelamin}</div>
-                      </td>
-                      <td className="p-4 border-b border-tk-border font-medium text-tk-primary">
-                        {s.kelas ? s.kelas.nama_kelas : <span className="text-tk-muted">Belum Ditentukan</span>}
-                      </td>
-                      <td className="p-4 border-b border-tk-border text-[0.85rem]">
-                        {s.orang_tuas && s.orang_tuas.map((o) => (
-                          <div key={o.id_ortu} className="text-tk-text font-medium flex flex-col gap-0.5">
-                            <div>Ayah: {o.nama_ayah}</div>
-                            <div>Ibu: {o.nama_ibu}</div>
+                  paginatedSiswa.map((s) => {
+                    console.log('Siswa data:', s.nama_lengkap, 'foto:', s.orang_tuas?.[0]?.user?.foto_profil);
+                    return (
+                      <tr key={s.id_anak} className="hover:bg-tk-bg/50">
+                        <td className="p-4 border-b border-tk-border text-[0.85rem]">
+                          <div className="font-medium text-tk-text">NISN: {s.nisn || '-'}</div>
+                          <div className="text-tk-muted">NIK: {s.nik || '-'}</div>
+                        </td>
+                        <td className="p-4 border-b border-tk-border">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={
+                                s.orang_tuas?.[0]?.user?.foto_profil
+                                  ? `http://127.0.0.1:8000/storage/${s.orang_tuas[0].user.foto_profil}`
+                                  : (s.jenis_kelamin === 'Laki-laki' ? studentAvatarBoy : studentAvatarGirl)
+                              }
+                              alt={s.nama_lengkap}
+                              className="w-10 h-10 rounded-full object-cover border border-tk-border shadow-sm"
+                            />
+                            <div>
+                              <div className="font-semibold text-tk-text">{s.nama_lengkap}</div>
+                              <div className="text-xs text-tk-muted">Panggilan: {s.nama_panggilan || '-'} | {s.jenis_kelamin}</div>
+                            </div>
                           </div>
-                        ))}
-                      </td>
-                      <td className="p-4 border-b border-tk-border text-center">
-                        <div className="flex justify-center gap-2">
-                          <button onClick={() => handleOpenEditSiswa(s)} className="px-3 py-1.5 border border-tk-primary text-tk-primary hover:bg-tk-secondary-light rounded-md font-semibold text-sm transition-colors cursor-pointer">
-                            Edit
-                          </button>
-                          <button onClick={() => handleSiswaDelete(s.id_anak)} className="px-3 py-1.5 border border-red-600 text-red-600 hover:bg-red-50 rounded-md font-semibold text-sm transition-colors cursor-pointer">
-                            Hapus
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="p-4 border-b border-tk-border font-medium text-tk-primary">
+                          {s.kelas ? s.kelas.nama_kelas : <span className="text-tk-muted">Belum Ditentukan</span>}
+                        </td>
+                        <td className="p-4 border-b border-tk-border text-[0.85rem]">
+                          {s.orang_tuas && s.orang_tuas.map((o) => (
+                            <div key={o.id_ortu} className="text-tk-text font-medium flex flex-col gap-0.5">
+                              <div>Ayah: {o.nama_ayah}</div>
+                              <div>Ibu: {o.nama_ibu}</div>
+                            </div>
+                          ))}
+                        </td>
+                        <td className="p-4 border-b border-tk-border text-center">
+                          <div className="flex justify-center gap-2">
+                            <button onClick={() => handleOpenEditSiswa(s)} className="px-3 py-1.5 border border-tk-primary text-tk-primary hover:bg-tk-secondary-light rounded-md font-semibold text-sm transition-colors cursor-pointer">
+                              Edit
+                            </button>
+                            <button onClick={() => handleSiswaDelete(s.id_anak)} className="px-3 py-1.5 border border-red-600 text-red-600 hover:bg-red-50 rounded-md font-semibold text-sm transition-colors cursor-pointer">
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
+
+            {/* Pagination Footer */}
+            {totalPagesSiswa > 1 && (
+              <div className="flex justify-between items-center p-4 border-t border-tk-border bg-tk-bg/30">
+                <span className="text-sm text-tk-muted">
+                  Menampilkan {paginatedSiswa.length} dari {filteredSiswa.length} data siswa
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPageSiswa === 1}
+                    onClick={() => setCurrentPageSiswa(prev => prev - 1)}
+                    className="px-3 py-1.5 border border-tk-border rounded-md bg-white text-tk-text text-sm font-semibold hover:bg-tk-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    Sebelumnya
+                  </button>
+                  <span className="px-3 py-1.5 text-sm font-semibold text-tk-primary">
+                    Halaman {currentPageSiswa} dari {totalPagesSiswa}
+                  </span>
+                  <button
+                    disabled={currentPageSiswa === totalPagesSiswa}
+                    onClick={() => setCurrentPageSiswa(prev => prev + 1)}
+                    className="px-3 py-1.5 border border-tk-border rounded-md bg-white text-tk-text text-sm font-semibold hover:bg-tk-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -347,12 +477,12 @@ export const ManageSiswa = () => {
                 </tr>
               </thead>
               <tbody>
-                {kelas.length === 0 ? (
+                {paginatedKelas.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="p-6 text-center text-tk-muted">Belum ada data kelas.</td>
                   </tr>
                 ) : (
-                  kelas.map((k) => (
+                  paginatedKelas.map((k) => (
                     <tr key={k.id_kelas} className="hover:bg-tk-bg/50">
                       <td className="p-4 border-b border-tk-border font-semibold text-tk-text">{k.nama_kelas}</td>
                       <td className="p-4 border-b border-tk-border font-semibold text-tk-muted">{k.tahun_ajaran}</td>
@@ -372,6 +502,30 @@ export const ManageSiswa = () => {
                 )}
               </tbody>
             </table>
+
+            {totalPagesKelas > 1 && (
+              <div className="flex justify-between items-center p-4 border-t border-tk-border bg-tk-bg/30">
+                <span className="text-sm text-tk-muted">
+                  Menampilkan {paginatedKelas.length} dari {kelas.length} data kelas
+                </span>
+                <div className="flex gap-2">
+                  <button 
+                    disabled={currentPageKelas === 1}
+                    onClick={() => setCurrentPageKelas(currentPageKelas - 1)}
+                    className="px-3 py-1.5 border border-tk-border bg-white text-tk-text hover:bg-tk-bg rounded-md text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Sebelumnya
+                  </button>
+                  <button 
+                    disabled={currentPageKelas === totalPagesKelas}
+                    onClick={() => setCurrentPageKelas(currentPageKelas + 1)}
+                    className="px-3 py-1.5 border border-tk-border bg-white text-tk-text hover:bg-tk-bg rounded-md text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -486,34 +640,43 @@ export const ManageSiswa = () => {
                 </div>
               </div>
 
-              {!editingSiswaId && (
-                <div className="border-t border-tk-border pt-4 mt-2">
-                  <h3 className="text-sm font-bold text-tk-primary uppercase tracking-wider mb-3">Pembuatan Akun Login Wali Murid</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-tk-text">Nama Ayah</label>
-                      <input required type="text" value={namaAyah} onChange={(e) => setNamaAyah(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-tk-text">Nama Ibu</label>
-                      <input required type="text" value={namaIbu} onChange={(e) => setNamaIbu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
-                    </div>
+              <div className="border-t border-tk-border pt-4 mt-2">
+                <h3 className="text-sm font-bold text-tk-primary uppercase tracking-wider mb-3">
+                  {editingSiswaId ? 'Kelola Akun Login & Data Wali Murid' : 'Pembuatan Akun Login Wali Murid'}
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-tk-text">Nama Ayah</label>
+                    <input required type="text" value={namaAyah} onChange={(e) => setNamaAyah(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
                   </div>
-                  <div className="grid grid-cols-3 gap-4 mt-3">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-tk-text">Username Wali</label>
-                      <input required type="text" value={usernameOrtu} onChange={(e) => setUsernameOrtu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-tk-text">Password Wali</label>
-                      <input required type="password" value={passwordOrtu} onChange={(e) => setPasswordOrtu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" placeholder="••••••" />
-                    </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-tk-text">Nama Ibu</label>
+                    <input required type="text" value={namaIbu} onChange={(e) => setNamaIbu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
                   </div>
                 </div>
-              )}
+                <div className="grid grid-cols-3 gap-4 mt-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-tk-text">Username Wali</label>
+                    <input required type="text" value={usernameOrtu} onChange={(e) => setUsernameOrtu(e.target.value)} className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {/* Spacer */}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-tk-text">
+                      Password Wali {editingSiswaId && '(Kosongkan jika tidak diubah)'}
+                    </label>
+                    <input 
+                      required={!editingSiswaId} 
+                      type="password" 
+                      value={passwordOrtu} 
+                      onChange={(e) => setPasswordOrtu(e.target.value)} 
+                      className="p-2 border border-tk-border rounded-md focus:border-tk-primary outline-none" 
+                      placeholder="••••••" 
+                    />
+                  </div>
+                </div>
+              </div>
 
               <div className="flex justify-end gap-3 border-t border-tk-border pt-4 mt-4">
                 <button type="button" onClick={() => setShowSiswaModal(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-tk-text rounded-md font-semibold cursor-pointer">Batal</button>

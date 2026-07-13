@@ -8,22 +8,32 @@ Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->
 
 Route::get('/user', function (Request $request) {
     // Return user along with profiles depending on role
-    $user = $request->user();
+    // Fix: use User relationships instead of separate where() queries per role
+    $user    = $request->user();
     $profile = null;
+
     if ($user->role === 'admin') {
-        $profile = $user->admin ?? \App\Models\Admin::where('id_user', $user->id_user)->first();
+        $profile = $user->admin;
     } elseif ($user->role === 'guru') {
-        $profile = \App\Models\Guru::with('kelas')->where('id_user', $user->id_user)->first();
+        $profile = $user->load('guru.kelas')->guru;
     } elseif ($user->role === 'orangtua') {
-        $profile = \App\Models\OrangTua::with('anak.kelas')->where('id_user', $user->id_user)->first();
+        $profile = $user->load('orangTua.anak.kelas')->orangTua;
     }
+
     return response()->json([
-        'user' => $user,
-        'profile' => $profile
+        'user'    => $user,
+        'profile' => $profile,
     ]);
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/user/profile-photo', [App\Http\Controllers\AuthController::class, 'updateProfilePhoto']);
+
+    // Notifications
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
+
     // ==========================================
     // ADMIN ROUTES
     // ==========================================
@@ -51,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/spp/pending', [App\Http\Controllers\AdminController::class, 'listPendingSPP']);
         Route::get('/spp/all', [App\Http\Controllers\AdminController::class, 'listAllSPP']);
         Route::post('/spp/{id}/verify', [App\Http\Controllers\AdminController::class, 'verifySPP']);
+
+        // Dashboard Stats
+        Route::get('/dashboard-stats', [App\Http\Controllers\AdminController::class, 'dashboardStats']);
     });
 
     // ==========================================
@@ -78,13 +91,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('wali')->group(function () {
         Route::get('/anak', [App\Http\Controllers\WaliController::class, 'getMyChildInfo']);
         Route::put('/anak', [App\Http\Controllers\WaliController::class, 'updateChildProfile']);
-        
+
         Route::get('/anak/akademik', [App\Http\Controllers\WaliController::class, 'getChildAcademicProgress']);
         Route::get('/anak/mengaji', [App\Http\Controllers\WaliController::class, 'getChildNgajiProgress']);
         Route::get('/anak/absensi', [App\Http\Controllers\WaliController::class, 'getChildAbsensi']);
-        
+
         Route::get('/kegiatan', [App\Http\Controllers\WaliController::class, 'getKegiatanList']);
-        
+
         Route::get('/spp', [App\Http\Controllers\WaliController::class, 'getMySPPList']);
         Route::post('/spp/upload', [App\Http\Controllers\WaliController::class, 'uploadSPPProof']);
     });

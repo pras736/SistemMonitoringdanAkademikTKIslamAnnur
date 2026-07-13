@@ -4,12 +4,19 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+const INDO_MONTHS = [
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'
+];
+
 export const BayarSPP = () => {
   const [sppList, setSppList] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Upload states
   const [selectedSppId, setSelectedSppId] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [buktiFile, setBuktiFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
@@ -19,19 +26,25 @@ export const BayarSPP = () => {
 
   const fetchSPP = async () => {
     try {
+      console.log('Fetching SPP list with token:', token ? token.substring(0, 10) + '...' : 'null');
       const res = await axios.get(`${API_BASE}/wali/spp`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('SPP List API Response:', res.data);
       setSppList(res.data);
       // Select the first unpaid/waiting item as default for upload
       const unpaid = res.data.find(item => item.status_pembayaran !== 'Lunas');
       if (unpaid) {
         setSelectedSppId(unpaid.id_spp);
+        setSelectedYear(unpaid.tahun);
+        setSelectedMonth(unpaid.bulan);
       } else if (res.data.length > 0) {
         setSelectedSppId(res.data[0].id_spp);
+        setSelectedYear(res.data[0].tahun);
+        setSelectedMonth(res.data[0].bulan);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching SPP list:', err);
     } finally {
       setLoading(false);
     }
@@ -40,6 +53,30 @@ export const BayarSPP = () => {
   useEffect(() => {
     fetchSPP();
   }, []);
+
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+    // Find first month for this year in sppList
+    const firstMatch = sppList.find(item => String(item.tahun) === String(year));
+    if (firstMatch) {
+      setSelectedMonth(firstMatch.bulan);
+      setSelectedSppId(firstMatch.id_spp);
+    } else {
+      setSelectedMonth('');
+      setSelectedSppId('');
+    }
+  };
+
+  const handleMonthChange = (month) => {
+    setSelectedMonth(month);
+    // Find match for this year and month
+    const match = sppList.find(item => String(item.tahun) === String(selectedYear) && String(item.bulan) === String(month));
+    if (match) {
+      setSelectedSppId(match.id_spp);
+    } else {
+      setSelectedSppId('');
+    }
+  };
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
@@ -102,20 +139,59 @@ export const BayarSPP = () => {
         <form onSubmit={handleUploadSubmit} className="bg-tk-card border border-tk-border rounded-xl p-6 shadow-sm flex flex-col gap-4">
           <h2 className="text-base font-bold text-tk-primary m-0 border-b border-tk-border pb-3">Upload Bukti Pembayaran</h2>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-tk-text">Pilih Tagihan SPP</label>
-            <select 
-              value={selectedSppId} 
-              onChange={(e) => setSelectedSppId(e.target.value)} 
-              className="p-2 border border-tk-border rounded-md bg-white focus:border-tk-primary outline-none text-sm font-medium"
-            >
-              {sppList.map(item => (
-                <option key={item.id_spp} value={item.id_spp}>
-                  {item.bulan} {item.tahun} - Rp {item.nominal.toLocaleString('id-ID')} ({item.status_pembayaran})
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-tk-text">Tahun Tagihan</label>
+              <select 
+                value={selectedYear} 
+                onChange={(e) => handleYearChange(e.target.value)} 
+                className="p-2 border border-tk-border rounded-md bg-white focus:border-tk-primary outline-none text-sm font-medium"
+              >
+                <option value="">Pilih Tahun</option>
+                {[...new Set(sppList.map(item => item.tahun).filter(Boolean))].sort((a, b) => Number(a) - Number(b)).map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-tk-text">Bulan Tagihan</label>
+              <select 
+                value={selectedMonth} 
+                onChange={(e) => handleMonthChange(e.target.value)} 
+                className="p-2 border border-tk-border rounded-md bg-white focus:border-tk-primary outline-none text-sm font-medium"
+                disabled={!selectedYear}
+              >
+                <option value="">Pilih Bulan</option>
+                {sppList
+                  .filter(item => String(item.tahun) === String(selectedYear))
+                  .map(item => item.bulan)
+                  .sort((a, b) => INDO_MONTHS.indexOf(a) - INDO_MONTHS.indexOf(b))
+                  .map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+              </select>
+            </div>
           </div>
+
+          {selectedSppId && (() => {
+            const selectedSpp = sppList.find(item => String(item.id_spp) === String(selectedSppId));
+            if (!selectedSpp) return null;
+            return (
+              <div className="bg-tk-bg p-3 rounded-lg border border-tk-border text-sm flex flex-col gap-1.5 mt-1">
+                <div className="flex justify-between">
+                  <span className="font-semibold text-tk-muted">Nominal:</span>
+                  <span className="font-bold text-tk-text">Rp {selectedSpp.nominal.toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-tk-muted">Status:</span>
+                  <span className={`font-bold ${selectedSpp.status_pembayaran === 'Lunas' ? 'text-[#65A30D]' : selectedSpp.status_pembayaran === 'Menunggu Verifikasi' ? 'text-tk-primary' : 'text-red-600'}`}>
+                    {selectedSpp.status_pembayaran}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-semibold text-tk-text">File Bukti Transfer</label>

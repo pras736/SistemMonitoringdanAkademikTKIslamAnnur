@@ -11,17 +11,31 @@ use App\Models\Absensi;
 use App\Models\Kegiatan;
 use App\Models\Spp;
 use App\Models\OrangTua;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class WaliController extends Controller
 {
+    // Memoize the child lookup — getAnak() called multiple times per request
+    // (e.g. uploadSPPProof calls it, then other logic runs — was 2 queries every call)
+    private ?Anak $anakCache = null;
+
     private function getAnak(Request $request)
     {
+        if ($this->anakCache !== null) {
+            return $this->anakCache;
+        }
+
         $user = $request->user();
         $ortu = OrangTua::where('id_user', $user->id_user)->first();
         if (!$ortu) return null;
-        return Anak::with(['kelas', 'dataAnak', 'alamatAnak', 'orangTuas'])->find($ortu->id_anak);
+
+        $this->anakCache = Anak::with(['kelas', 'dataAnak', 'alamatAnak', 'orangTuas'])
+            ->find($ortu->id_anak);
+
+        return $this->anakCache;
     }
 
     public function getMyChildInfo(Request $request)
@@ -42,44 +56,44 @@ class WaliController extends Controller
 
         $request->validate([
             // Anak general
-            'nama_panggilan' => 'nullable|string',
-            'tempat_lahir' => 'nullable|string',
-            'tanggal_lahir' => 'nullable|date',
-            'agama' => 'nullable|string',
-            'kewarganegaraan' => 'nullable|string',
+            'nama_panggilan'   => 'nullable|string',
+            'tempat_lahir'     => 'nullable|string',
+            'tanggal_lahir'    => 'nullable|date',
+            'agama'            => 'nullable|string',
+            'kewarganegaraan'  => 'nullable|string',
             // DataAnak
-            'hobi' => 'nullable|string',
-            'cita_cita' => 'nullable|string',
-            'anak_ke' => 'nullable|integer',
-            'jumlah_saudara' => 'nullable|integer',
-            'golongan_darah' => 'nullable|string',
-            'berat_badan_kg' => 'nullable|numeric',
-            'tinggi_badan_cm' => 'nullable|numeric',
-            'lingkar_kepala_cm' => 'nullable|numeric',
-            'imunisasi' => 'nullable|string',
+            'hobi'             => 'nullable|string',
+            'cita_cita'        => 'nullable|string',
+            'anak_ke'          => 'nullable|integer',
+            'jumlah_saudara'   => 'nullable|integer',
+            'golongan_darah'   => 'nullable|string',
+            'berat_badan_kg'   => 'nullable|numeric',
+            'tinggi_badan_cm'  => 'nullable|numeric',
+            'lingkar_kepala_cm'=> 'nullable|numeric',
+            'imunisasi'        => 'nullable|string',
             // AlamatAnak
-            'jalan' => 'nullable|string',
-            'kelurahan' => 'nullable|string',
-            'kecamatan' => 'nullable|string',
-            'kota' => 'nullable|string',
-            'provinsi' => 'nullable|string',
-            'kode_pos' => 'nullable|string',
+            'jalan'               => 'nullable|string',
+            'kelurahan'           => 'nullable|string',
+            'kecamatan'           => 'nullable|string',
+            'kota'                => 'nullable|string',
+            'provinsi'            => 'nullable|string',
+            'kode_pos'            => 'nullable|string',
             'jarak_ke_sekolah_km' => 'nullable|numeric',
-            'telp_ayah' => 'nullable|string',
-            'telp_ibu' => 'nullable|string',
+            'telp_ayah'           => 'nullable|string',
+            'telp_ibu'            => 'nullable|string',
             // OrangTua
-            'nama_ayah' => 'nullable|string',
-            'nik_ayah' => 'nullable|string',
-            'ttl_ayah' => 'nullable|string',
+            'nama_ayah'       => 'nullable|string',
+            'nik_ayah'        => 'nullable|string',
+            'ttl_ayah'        => 'nullable|string',
             'pendidikan_ayah' => 'nullable|string',
-            'pekerjaan_ayah' => 'nullable|string',
-            'kantor_ayah' => 'nullable|string',
-            'nama_ibu' => 'nullable|string',
-            'nik_ibu' => 'nullable|string',
-            'ttl_ibu' => 'nullable|string',
-            'pendidikan_ibu' => 'nullable|string',
-            'pekerjaan_ibu' => 'nullable|string',
-            'kantor_ibu' => 'nullable|string',
+            'pekerjaan_ayah'  => 'nullable|string',
+            'kantor_ayah'     => 'nullable|string',
+            'nama_ibu'        => 'nullable|string',
+            'nik_ibu'         => 'nullable|string',
+            'ttl_ibu'         => 'nullable|string',
+            'pendidikan_ibu'  => 'nullable|string',
+            'pekerjaan_ibu'   => 'nullable|string',
+            'kantor_ibu'      => 'nullable|string',
         ]);
 
         // Update Anak
@@ -87,22 +101,21 @@ class WaliController extends Controller
             'nama_panggilan', 'tempat_lahir', 'tanggal_lahir', 'agama', 'kewarganegaraan'
         ]));
 
-        // Update DataAnak
-        $dataAnak = DataAnak::firstOrCreate(['id_anak' => $anak->id_anak]);
+        // Fix: Use eager-loaded relation instead of extra DB query
+        $dataAnak = $anak->dataAnak ?? DataAnak::firstOrCreate(['id_anak' => $anak->id_anak]);
         $dataAnak->update($request->only([
             'hobi', 'cita_cita', 'anak_ke', 'jumlah_saudara', 'golongan_darah',
             'berat_badan_kg', 'tinggi_badan_cm', 'lingkar_kepala_cm', 'imunisasi'
         ]));
 
-        // Update AlamatAnak
-        $alamatAnak = AlamatAnak::firstOrCreate(['id_anak' => $anak->id_anak]);
+        $alamatAnak = $anak->alamatAnak ?? AlamatAnak::firstOrCreate(['id_anak' => $anak->id_anak]);
         $alamatAnak->update($request->only([
             'jalan', 'kelurahan', 'kecamatan', 'kota', 'provinsi', 'kode_pos',
             'jarak_ke_sekolah_km', 'telp_ayah', 'telp_ibu'
         ]));
 
-        // Update OrangTua Profile
-        $ortuRecord = OrangTua::where('id_anak', $anak->id_anak)->first();
+        // Fix: Use eager-loaded orangTuas instead of extra DB query
+        $ortuRecord = $anak->orangTuas->first();
         if ($ortuRecord) {
             $ortuRecord->update($request->only([
                 'nama_ayah', 'nik_ayah', 'ttl_ayah', 'pendidikan_ayah', 'pekerjaan_ayah', 'kantor_ayah',
@@ -110,9 +123,10 @@ class WaliController extends Controller
             ]));
         }
 
+        // Fix: reload relations instead of full refetch from DB
         return response()->json([
             'message' => 'Data diri anak berhasil diperbarui',
-            'data' => Anak::with(['kelas', 'dataAnak', 'alamatAnak', 'orangTuas'])->find($anak->id_anak)
+            'data'    => $anak->refresh()->load(['kelas', 'dataAnak', 'alamatAnak', 'orangTuas']),
         ]);
     }
 
@@ -179,7 +193,7 @@ class WaliController extends Controller
     public function uploadSPPProof(Request $request)
     {
         $request->validate([
-            'id_spp' => 'required|exists:spps,id_spp',
+            'id_spp'         => 'required|exists:spps,id_spp',
             'bukti_transfer' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -202,12 +216,28 @@ class WaliController extends Controller
             }
 
             $path = $request->file('bukti_transfer')->store('spp', 'public');
-            
+
             $spp->update([
-                'bukti_transfer' => $path,
+                'bukti_transfer'    => $path,
                 'status_pembayaran' => 'Menunggu Verifikasi',
-                'tanggal_bayar' => now()->toDateString(),
+                'tanggal_bayar'     => now()->toDateString(),
             ]);
+
+            // Fix N+1: pluck only ids (1 query) then batch insert notifications
+            $adminIds = User::where('role', 'admin')->pluck('id_user');
+
+            if ($adminIds->isNotEmpty()) {
+                $now        = now();
+                $notifBatch = $adminIds->map(fn($adminUserId) => [
+                    'id_user'    => $adminUserId,
+                    'title'      => 'Pembayaran SPP Baru',
+                    'message'    => 'Wali murid dari ' . $anak->nama_lengkap . ' telah mengunggah bukti pembayaran SPP untuk ' . $spp->bulan . ' ' . $spp->tahun . '.',
+                    'is_read'    => false,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ])->all();
+                Notification::insert($notifBatch);
+            }
 
             return response()->json(['message' => 'Bukti pembayaran berhasil diupload', 'data' => $spp]);
         }

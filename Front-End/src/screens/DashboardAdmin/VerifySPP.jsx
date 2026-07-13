@@ -10,8 +10,14 @@ export const VerifySPP = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProofUrl, setSelectedProofUrl] = useState(null);
   const [tab, setTab] = useState('pending'); // 'pending' or 'all'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tab, searchTerm]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -58,6 +64,13 @@ export const VerifySPP = () => {
   if (loading) return <div>Loading data pembayaran SPP...</div>;
 
   const currentList = tab === 'pending' ? pendingPayments : allPayments;
+  const filteredPayments = currentList.filter(payment =>
+    payment.anak?.nama_lengkap?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
+  const paginatedPayments = filteredPayments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="flex flex-col gap-6">
@@ -76,6 +89,19 @@ export const VerifySPP = () => {
         </button>
       </div>
 
+      {/* Search Bar */}
+      <div className="flex justify-between items-center gap-4 bg-tk-card p-4 rounded-xl border border-tk-border shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <input 
+            type="text" 
+            placeholder="Cari nama siswa..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className="w-full px-4 py-2 border border-tk-border rounded-md focus:border-tk-primary outline-none text-sm" 
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* List of Payments */}
         <div className="lg:col-span-2 bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden">
@@ -90,12 +116,12 @@ export const VerifySPP = () => {
               </tr>
             </thead>
             <tbody>
-              {currentList.length === 0 ? (
+              {paginatedPayments.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="p-6 text-center text-tk-muted">Tidak ada data pembayaran.</td>
                 </tr>
               ) : (
-                currentList.map((payment) => (
+                paginatedPayments.map((payment) => (
                   <tr key={payment.id_spp} className="hover:bg-tk-bg/50">
                     <td className="p-4 border-b border-tk-border font-semibold text-tk-text">
                       {payment.anak?.nama_lengkap}
@@ -139,6 +165,30 @@ export const VerifySPP = () => {
               )}
             </tbody>
           </table>
+
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center p-4 border-t border-tk-border bg-tk-bg/30">
+              <span className="text-sm text-tk-muted">
+                Menampilkan {paginatedPayments.length} dari {filteredPayments.length} data pembayaran
+              </span>
+              <div className="flex gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="px-3 py-1.5 border border-tk-border bg-white text-tk-text hover:bg-tk-bg rounded-md text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Sebelumnya
+                </button>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="px-3 py-1.5 border border-tk-border bg-white text-tk-text hover:bg-tk-bg rounded-md text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Berikutnya
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Image Viewer */}

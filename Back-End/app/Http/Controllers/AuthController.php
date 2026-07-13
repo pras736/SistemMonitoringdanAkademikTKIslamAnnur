@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -32,7 +33,34 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id_user,
                 'username' => $user->username,
+                'foto_profil' => $user->foto_profil,
             ]
+        ]);
+    }
+
+    public function updateProfilePhoto(Request $request)
+    {
+        $request->validate([
+            'foto_profil' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        // Delete old photo if exists
+        if ($user->foto_profil) {
+            Storage::disk('public')->delete($user->foto_profil);
+        }
+
+        // Store new photo
+        $path = $request->file('foto_profil')->store('profile_photos', 'public');
+
+        $user->foto_profil = $path;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Foto profil berhasil diperbarui',
+            'foto_profil' => $path,
+            'url' => asset('storage/' . $path)
         ]);
     }
 

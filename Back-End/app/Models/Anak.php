@@ -52,4 +52,14 @@ class Anak extends Model
     {
         return $this->hasMany(Spp::class, 'id_anak', 'id_anak');
     }
+
+    public function absensis()
+    {
+        return $this->hasMany(Absensi::class, 'id_anak', 'id_anak');
+    }
+
+    public function perkembanganAkademiks()
+    {
+        return $this->hasMany(PerkembanganAkademik::class, 'id_anak', 'id_anak');
+    }
 }

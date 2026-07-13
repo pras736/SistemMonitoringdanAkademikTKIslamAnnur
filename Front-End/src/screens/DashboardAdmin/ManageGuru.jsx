@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Icons } from '../../components/Icons';
+import defaultAvatar from '../../assets/teacher_avatar.png';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
@@ -19,6 +20,11 @@ export const ManageGuru = () => {
   const [noTelp, setNoTelp] = useState('');
   const [idKelas, setIdKelas] = useState('');
   const [error, setError] = useState('');
+
+  // Search and Pagination States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const token = localStorage.getItem('token');
 
@@ -121,7 +127,21 @@ export const ManageGuru = () => {
     }
   };
 
-  if (loading) return <div>Loading data guru...</div>;
+  const filteredGurus = gurus.filter((g) => {
+    const query = searchQuery.toLowerCase();
+    const matchNama = g.nama_guru?.toLowerCase().includes(query);
+    const matchNip = g.nip?.toLowerCase().includes(query);
+    const matchKelas = g.kelas?.nama_kelas?.toLowerCase().includes(query);
+    return matchNama || matchNip || matchKelas;
+  });
+
+  const totalPages = Math.ceil(filteredGurus.length / itemsPerPage);
+  const paginatedGurus = filteredGurus.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  if (loading) return <div className="flex h-[50vh] items-center justify-center font-semibold text-tk-muted">Loading data guru...</div>;
 
   return (
     <div className="flex flex-col gap-6">
@@ -134,6 +154,19 @@ export const ManageGuru = () => {
           <Icons.Plus /> Tambah Guru
         </button>
       </header>
+
+      {/* Search Bar */}
+      <div className="flex justify-between items-center gap-4 bg-tk-card p-4 rounded-xl border border-tk-border shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Cari guru berdasarkan nama, NIP, atau kelas..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            className="w-full px-4 py-2 border border-tk-border rounded-md focus:border-tk-primary outline-none text-sm"
+          />
+        </div>
+      </div>
 
       <div className="bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden">
         <table className="w-full border-collapse text-left">
@@ -148,38 +181,78 @@ export const ManageGuru = () => {
             </tr>
           </thead>
           <tbody>
-            {gurus.length === 0 ? (
+            {paginatedGurus.length === 0 ? (
               <tr>
-                <td colSpan="6" className="p-6 text-center text-tk-muted">Belum ada data guru.</td>
+                <td colSpan="6" className="p-6 text-center text-tk-muted">Tidak ada data guru yang cocok.</td>
               </tr>
             ) : (
-              gurus.map((guru) => (
-                <tr key={guru.id_guru} className="hover:bg-tk-bg/50">
-                  <td className="p-4 border-b border-tk-border font-medium">{guru.nip || '-'}</td>
-                  <td className="p-4 border-b border-tk-border font-semibold text-tk-text">{guru.nama_guru}</td>
-                  <td className="p-4 border-b border-tk-border text-[0.9rem]">
-                    <div className="font-semibold text-tk-text">{guru.user?.username}</div>
-                    <div className="text-tk-muted">-</div>
-                  </td>
-                  <td className="p-4 border-b border-tk-border">{guru.no_telp}</td>
-                  <td className="p-4 border-b border-tk-border font-medium text-tk-primary">
-                    {guru.kelas ? guru.kelas.nama_kelas : <span className="text-tk-muted">-</span>}
-                  </td>
-                  <td className="p-4 border-b border-tk-border text-center">
-                    <div className="flex justify-center gap-2">
-                      <button onClick={() => handleOpenEdit(guru)} className="px-3 py-1.5 border border-tk-primary text-tk-primary hover:bg-tk-secondary-light rounded-md font-semibold text-sm transition-colors cursor-pointer">
-                        Edit
-                      </button>
-                      <button onClick={() => handleDelete(guru.id_guru)} className="px-3 py-1.5 border border-red-600 text-red-600 hover:bg-red-50 rounded-md font-semibold text-sm transition-colors cursor-pointer">
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              paginatedGurus.map((guru) => {
+                console.log('Guru data:', guru.nama_guru, 'foto:', guru.user?.foto_profil);
+                return (
+                  <tr key={guru.id_guru} className="hover:bg-tk-bg/50">
+                    <td className="p-4 border-b border-tk-border font-medium">{guru.nip || '-'}</td>
+                    <td className="p-4 border-b border-tk-border font-semibold text-tk-text">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={guru.user?.foto_profil ? `http://127.0.0.1:8000/storage/${guru.user.foto_profil}` : defaultAvatar}
+                          alt={guru.nama_guru}
+                          className="w-10 h-10 rounded-full object-cover border border-tk-border shadow-sm"
+                        />
+                        <span>{guru.nama_guru}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 border-b border-tk-border text-[0.9rem]">
+                      <div className="font-semibold text-tk-text">{guru.user?.username}</div>
+                      <div className="text-tk-muted">-</div>
+                    </td>
+                    <td className="p-4 border-b border-tk-border">{guru.no_telp}</td>
+                    <td className="p-4 border-b border-tk-border font-medium text-tk-primary">
+                      {guru.kelas ? guru.kelas.nama_kelas : <span className="text-tk-muted">-</span>}
+                    </td>
+                    <td className="p-4 border-b border-tk-border text-center">
+                      <div className="flex justify-center gap-2">
+                        <button onClick={() => handleOpenEdit(guru)} className="px-3 py-1.5 border border-tk-primary text-tk-primary hover:bg-tk-secondary-light rounded-md font-semibold text-sm transition-colors cursor-pointer">
+                          Edit
+                        </button>
+                        <button onClick={() => handleDelete(guru.id_guru)} className="px-3 py-1.5 border border-red-600 text-red-600 hover:bg-red-50 rounded-md font-semibold text-sm transition-colors cursor-pointer">
+                          Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
+
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center p-4 border-t border-tk-border bg-tk-bg/30">
+            <span className="text-sm text-tk-muted">
+              Menampilkan {paginatedGurus.length} dari {filteredGurus.length} data guru
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+                className="px-3 py-1.5 border border-tk-border rounded-md bg-white text-tk-text text-sm font-semibold hover:bg-tk-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Sebelumnya
+              </button>
+              <span className="px-3 py-1.5 text-sm font-semibold text-tk-primary">
+                Halaman {currentPage} dari {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                className="px-3 py-1.5 border border-tk-border rounded-md bg-white text-tk-text text-sm font-semibold hover:bg-tk-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Berikutnya
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (
