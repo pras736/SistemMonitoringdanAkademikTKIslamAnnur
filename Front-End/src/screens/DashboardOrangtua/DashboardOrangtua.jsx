@@ -4,6 +4,12 @@ import axios from 'axios';
 import { Icons } from '../../components/Icons';
 import student2Avatar from '../../assets/student_avatar_2.png';
 
+/**
+ * Halaman: Dashboard Wali Murid
+ * Deskripsi: Halaman utama wali murid yang menampilkan ringkasan informasi anak
+ * seperti perkembangan akademik calistung terbaru, catatan mengaji, status SPP,
+ * dan log aktivitas perkembangan anak dari semua aspek.
+ */
 const DashboardOrangtua = () => {
   const navigate = useNavigate();
   const [profilePhoto, setProfilePhoto] = useState(student2Avatar);
@@ -16,6 +22,8 @@ const DashboardOrangtua = () => {
   const [sppList, setSppList] = useState([]);
 
   useEffect(() => {
+    // [Data Fetching] Mengambil data profil, akademik, ngaji, absensi, dan SPP
+    // secara paralel menggunakan Promise.all untuk efisiensi
     const fetchDashboardData = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -74,7 +82,11 @@ const DashboardOrangtua = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Welcome Banner */}
+      {/* ============================================================
+          BAGIAN 1: Welcome Banner
+          Spanduk selamat datang dengan sapaan personal nama ayah/ibu,
+          nama anak yang dipantau, dan foto avatar siswa.
+         ============================================================ */}
       <div className="bg-tk-secondary-light rounded-2xl p-12 md:px-16 flex justify-between items-center relative overflow-hidden">
         <div className="relative z-10 max-w-[60%]">
           <span className="inline-block bg-tk-primary text-white px-4 py-2 rounded-full font-semibold text-[0.85rem] mb-6">Welcome Back!</span>
@@ -86,9 +98,15 @@ const DashboardOrangtua = () => {
         </div>
       </div>
 
-      {/* Main Widgets Grid */}
+      {/* ============================================================
+          BAGIAN 2: Grid Widget Utama (3 kolom)
+          Tiga kartu utama yang ditampilkan berdampingan:
+         ============================================================ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Academic Progress */}
+        {/* ============================================================
+            BAGIAN 2A: Widget Perkembangan Akademik
+            Menampilkan nilai calistung (Membaca, Menulis, Berhitung) terbaru.
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
           <div>
             <div className="flex items-center gap-4 mb-6">
@@ -124,7 +142,11 @@ const DashboardOrangtua = () => {
           )}
         </div>
 
-        {/* Catatan Mengaji */}
+        {/* ============================================================
+            BAGIAN 2B: Widget Catatan Mengaji
+            Menampilkan catatan mengaji terkini (halaman/surah terakhir)
+            yang diinput oleh guru.
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
           <div>
             <div className="flex items-center gap-4 mb-6">
@@ -153,7 +175,11 @@ const DashboardOrangtua = () => {
           )}
         </div>
 
-        {/* SPP Payment */}
+        {/* ============================================================
+            BAGIAN 2C: Widget SPP
+            Menampilkan tagihan SPP aktif yang belum lunas atau menunggu verifikasi.
+            Dilengkapi tombol "Bayar / Upload Bukti" menuju halaman BayarSPP.
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col min-h-[300px]">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-10 h-10 rounded-md bg-red-100 text-red-600 flex items-center justify-center"><Icons.Payment /></div>
@@ -192,7 +218,13 @@ const DashboardOrangtua = () => {
         </div>
       </div>
 
-      {/* Log Aktivitas Guru */}
+      {/* ============================================================
+          BAGIAN 3: Log Aktivitas Perkembangan Anak
+          Panel 3 kartu horizontal:
+          - Kiri: Catatan perkembangan akademik guru (calistung)
+          - Tengah: Catatan mengaji terbaru guru
+          - Kanan: Status kehadiran terakhir (Hadir/Sakit/Izin/Alfa)
+         ============================================================ */}
       <div className="bg-tk-card rounded-xl border border-tk-border p-6 shadow-sm flex flex-col col-span-1 md:col-span-3">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">

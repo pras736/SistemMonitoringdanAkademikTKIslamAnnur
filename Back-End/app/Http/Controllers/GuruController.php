@@ -17,12 +17,20 @@ use Illuminate\Support\Facades\Storage;
 
 class GuruController extends Controller
 {
+    /**
+     * Helper Internal: Ambil Profil Guru
+     * Deskripsi: Mendapatkan data model Guru berdasarkan pengguna (User) yang sedang login.
+     */
     private function getGuru(Request $request)
     {
         $user = $request->user();
         return Guru::where('id_user', $user->id_user)->first();
     }
 
+    /**
+     * Fitur: Daftar Siswa Kelas Guru
+     * Deskripsi: Menampilkan seluruh data siswa yang terdaftar di kelas yang diampu oleh Guru login.
+     */
     public function listMyStudents(Request $request)
     {
         $guru = $this->getGuru($request);
@@ -35,6 +43,10 @@ class GuruController extends Controller
     // ==========================================
     // ABSENSI
     // ==========================================
+    /**
+     * Fitur: Lihat Absensi Siswa
+     * Deskripsi: Menampilkan riwayat kehadiran siswa pada tanggal tertentu di kelas ampu guru.
+     */
     public function listAbsensi(Request $request)
     {
         $request->validate(['tanggal' => 'required|date']);
@@ -52,6 +64,10 @@ class GuruController extends Controller
         return response()->json($absensi);
     }
 
+    /**
+     * Fitur: Simpan Absensi Siswa
+     * Deskripsi: Menyimpan kehadiran harian seluruh siswa kelas secara bulk (menghapus data lama pada tanggal sama lalu batch insert).
+     */
     public function storeAbsensi(Request $request)
     {
         $request->validate([
@@ -101,6 +117,10 @@ class GuruController extends Controller
     // ==========================================
     // PERKEMBANGAN AKADEMIK
     // ==========================================
+    /**
+     * Fitur: Riwayat Perkembangan Mingguan
+     * Deskripsi: Mengambil nilai calistung siswa per minggu/bulan/tahun tertentu.
+     */
     public function listPerkembangan(Request $request)
     {
         $request->validate([
@@ -122,6 +142,10 @@ class GuruController extends Controller
         return response()->json($data);
     }
 
+    /**
+     * Fitur: Simpan Perkembangan Akademik (Calistung)
+     * Deskripsi: Menginput/update evaluasi membaca, berhitung, menulis satu murid sekaligus mengirim notifikasi real-time ke wali muridnya.
+     */
     public function storePerkembangan(Request $request)
     {
         $request->validate([
@@ -177,6 +201,10 @@ class GuruController extends Controller
     // ==========================================
     // MENGAJI (KARTU NGAJI)
     // ==========================================
+    /**
+     * Fitur: Riwayat Catatan Mengaji Kelas
+     * Deskripsi: Menampilkan riwayat mengaji siswa-siswa yang diajar oleh guru.
+     */
     public function listMengaji(Request $request)
     {
         $guru = $this->getGuru($request);
@@ -190,6 +218,10 @@ class GuruController extends Controller
         return response()->json($data);
     }
 
+    /**
+     * Fitur: Simpan Catatan Mengaji Siswa
+     * Deskripsi: Menyimpan progress belajar mengaji/bacaan iqra satu murid dan menembakkan notifikasi real-time ke akun wali muridnya.
+     */
     public function storeMengaji(Request $request)
     {
         $request->validate([
@@ -231,11 +263,19 @@ class GuruController extends Controller
     // ==========================================
     // KEGIATAN LUAR SEKOLAH
     // ==========================================
+    /**
+     * Fitur: Riwayat Daftar Kegiatan Sekolah
+     * Deskripsi: Mendapatkan daftar semua agenda/kegiatan luar sekolah yang aktif.
+     */
     public function listKegiatan()
     {
         return response()->json(Kegiatan::orderBy('tanggal', 'desc')->get());
     }
 
+    /**
+     * Fitur: Tambah Kegiatan Baru
+     * Deskripsi: Mengunggah data agenda sekolah/wisata/outbound, menyimpan fotonya, serta menyebarkan notifikasi ke seluruh wali murid secara massal.
+     */
     public function storeKegiatan(Request $request)
     {
         $request->validate([
@@ -276,6 +316,10 @@ class GuruController extends Controller
         return response()->json(['message' => 'Kegiatan luar sekolah berhasil ditambahkan', 'data' => $kegiatan]);
     }
 
+    /**
+     * Fitur: Hapus Kegiatan
+     * Deskripsi: Menghapus data kegiatan sekolah beserta file fotonya dari storage.
+     */
     public function deleteKegiatan($id)
     {
         $kegiatan = Kegiatan::findOrFail($id);

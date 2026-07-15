@@ -4,6 +4,12 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Kegiatan Luar Sekolah
+ * Deskripsi: Halaman guru untuk membuat dan mengelola pengumuman kegiatan luar sekolah.
+ * Setiap kegiatan baru yang dipublikasikan akan mengirim notifikasi massal
+ * ke seluruh akun wali murid yang terdaftar di sistem.
+ */
 export const ManageKegiatan = () => {
   const [kegiatans, setKegiatans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +24,7 @@ export const ManageKegiatan = () => {
 
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil seluruh daftar kegiatan yang sudah dipublikasikan
   const fetchKegiatans = async () => {
     try {
       const res = await axios.get(`${API_BASE}/guru/kegiatan`, {
@@ -73,6 +80,7 @@ export const ManageKegiatan = () => {
     }
   };
 
+  // [Action] Hapus kegiatan beserta foto-nya dari storage server
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pengumuman kegiatan ini?')) {
       try {
@@ -107,8 +115,12 @@ export const ManageKegiatan = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Form Input */}
-        <form onSubmit={handleSubmit} className="bg-tk-card p-6 border border-tk-border rounded-xl shadow-sm flex flex-col gap-4">
+      {/* ============================================================
+          BAGIAN 1: Form Tambah Kegiatan Baru (Kiri / 1 kolom)
+          Form berisi: judul, tanggal pelaksanaan, deskripsi kegiatan,
+          dan upload foto opsional (jpg/png/gif maks 2MB).
+         ============================================================ */}
+      <form onSubmit={handleSubmit} className="bg-tk-card p-6 border border-tk-border rounded-xl shadow-sm flex flex-col gap-4">
           <h2 className="text-base font-bold text-tk-primary m-0 border-b border-tk-border pb-3">Tambah Kegiatan Baru</h2>
 
           <div className="flex flex-col gap-1.5">
@@ -136,7 +148,11 @@ export const ManageKegiatan = () => {
           </button>
         </form>
 
-        {/* List of Activities */}
+        {/* ============================================================
+            BAGIAN 2: Daftar Kegiatan yang Sudah Dipublikasikan (Kanan / 2 kolom)
+            Grid card kegiatan menampilkan foto, tanggal, judul, deskripsi singkat,
+            dan tombol Hapus untuk setiap kegiatan.
+           ============================================================ */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           <h2 className="text-lg font-bold text-tk-primary m-0 pb-2 border-b border-tk-border">Kegiatan yang Sudah Dipublikasikan</h2>
           {kegiatans.length === 0 ? (

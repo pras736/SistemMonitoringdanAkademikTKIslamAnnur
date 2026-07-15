@@ -4,6 +4,14 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Perkembangan Belajar Buah Hati
+ * Deskripsi: Halaman wali murid untuk melihat rekam jejak perkembangan anak
+ * secara lengkap melalui 3 tab:
+ * - Tab 1: Perkembangan Mingguan Calistung (Membaca, Berhitung, Menulis)
+ * - Tab 2: Catatan Mengaji (Iqra/Al-Qur'an)
+ * - Tab 3: Riwayat Kehadiran Harian (Hadir/Sakit/Izin/Alfa)
+ */
 export const ProgressAnak = () => {
   const [academic, setAcademic] = useState([]);
   const [ngaji, setNgaji] = useState([]);
@@ -14,6 +22,7 @@ export const ProgressAnak = () => {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
+    // [Data Fetching] Mengambil data akademik, mengaji, dan absensi secara paralel
     const fetchProgress = async () => {
       try {
         const [acRes, ngRes, abRes] = await Promise.all([
@@ -38,12 +47,21 @@ export const ProgressAnak = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* ============================================================
+          BAGIAN 1: Header Halaman
+          Judul dan deskripsi singkat halaman.
+         ============================================================ */}
       <header>
         <h1 className="text-2xl font-bold text-tk-primary m-0">Perkembangan Belajar Buah Hati</h1>
         <p className="text-tk-muted text-[0.9rem] mt-1 m-0">Lihat rekam jejak akademik mingguan, perkembangan mengaji, dan absensi anak Anda.</p>
       </header>
 
-      {/* Sub Tabs */}
+      {/* ============================================================
+          BAGIAN 2: Tab Navigasi (3 Tab)
+          - "Perkembangan Mingguan (Calistung)": nilai BB/MB/BSH/BSB per minggu
+          - "Catatan Mengaji": riwayat Iqra/Al-Qur'an
+          - "Riwayat Kehadiran (Absensi)": status Hadir/Sakit/Izin/Alfa
+         ============================================================ */}
       <div className="flex gap-4 border-b border-tk-border">
         <button onClick={() => setSubTab('akademik')} className={`pb-3 font-bold text-base bg-transparent border-0 border-b-2 cursor-pointer transition-all duration-200 outline-none ${subTab === 'akademik' ? 'border-tk-primary text-tk-primary' : 'border-transparent text-tk-muted'}`}>
           Perkembangan Mingguan (Calistung)
@@ -56,6 +74,11 @@ export const ProgressAnak = () => {
         </button>
       </div>
 
+      {/* ============================================================
+          BAGIAN 3A: Konten Tab Akademik (Calistung)
+          Setiap kartu menampilkan nilai Membaca, Berhitung, Menulis
+          untuk satu periode minggu + catatan perkembangan guru.
+         ============================================================ */}
       {subTab === 'akademik' && (
         <div className="flex flex-col gap-4">
           {academic.length === 0 ? (
@@ -97,6 +120,10 @@ export const ProgressAnak = () => {
         </div>
       )}
 
+      {/* ============================================================
+          BAGIAN 3B: Konten Tab Mengaji
+          Tabel riwayat catatan mengaji berisi tanggal dan catatan tingkat/halaman.
+         ============================================================ */}
       {subTab === 'ngaji' && (
         <div className="bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden flex flex-col">
           <h3 className="text-base font-bold text-tk-primary m-0 p-4 border-b border-tk-border bg-tk-bg">Catatan Mengaji Iqra & Al-Quran</h3>
@@ -127,6 +154,11 @@ export const ProgressAnak = () => {
         </div>
       )}
 
+      {/* ============================================================
+          BAGIAN 3C: Konten Tab Absensi
+          Tabel riwayat kehadiran harian berisi tanggal, status (badge berwarna),
+          dan keterangan (misal: alasan sakit).
+         ============================================================ */}
       {subTab === 'absensi' && (
         <div className="bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden flex flex-col">
           <h3 className="text-base font-bold text-tk-primary m-0 p-4 border-b border-tk-border bg-tk-bg">Riwayat Kehadiran Harian</h3>

@@ -4,6 +4,15 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Edit Data Diri Anak & Orang Tua
+ * Deskripsi: Halaman wali murid untuk memperbarui data lengkap anak dan orang tua.
+ * Dibagi menjadi beberapa tab/seksi:
+ * - Data Pribadi Anak: nama panggilan, tanggal lahir, agama, kewarganegaraan
+ * - Data Tambahan: hobi, cita-cita, golongan darah, berat/tinggi badan, imunisasi
+ * - Alamat Tinggal: jalan, kelurahan, kecamatan, kota, provinsi, kode pos, jarak ke sekolah
+ * - Data Orang Tua: ayah & ibu (nama, NIK, TTL, pendidikan, pekerjaan, kantor, telp)
+ */
 export const EditAnak = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

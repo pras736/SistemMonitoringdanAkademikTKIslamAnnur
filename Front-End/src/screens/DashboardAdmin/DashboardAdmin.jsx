@@ -7,12 +7,18 @@ import student1Avatar from '../../assets/student_avatar_1.png';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Dashboard Admin
+ * Deskripsi: Halaman utama admin yang menampilkan ringkasan statistik sistem,
+ * daftar pengguna terbaru, dan quick-action verifikasi SPP pending.
+ */
 const DashboardAdmin = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil data statistik dashboard dari API backend
   const fetchStats = async () => {
     try {
       const res = await axios.get(`${API_BASE}/admin/dashboard-stats`, {
@@ -30,6 +36,7 @@ const DashboardAdmin = () => {
     fetchStats();
   }, []);
 
+  // [Action] Verifikasi SPP dari Dashboard — approve atau reject pembayaran SPP
   const handleVerifySPP = async (id, status) => {
     const act = status === 'Lunas' ? 'menyetujui' : 'menolak';
     if (window.confirm(`Apakah Anda yakin ingin ${act} pembayaran SPP ini?`)) {
@@ -50,13 +57,20 @@ const DashboardAdmin = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header Area */}
+      {/* ============================================================
+          BAGIAN 1: Header / Sambutan
+          Menampilkan judul halaman dan kalimat selamat datang admin.
+         ============================================================ */}
       <header>
         <h1 className="text-3xl font-bold mb-1">Hello, Admin !</h1>
         <p className="text-tk-muted text-[0.95rem]">Here's what's happening at TK Islam An Nur today.</p>
       </header>
 
-      {/* Top Stats */}
+      {/* ============================================================
+          BAGIAN 2: Statistik Utama (Top Stats Cards)
+          3 kartu ringkasan: Total Pengguna, Kelas Aktif, dan SPP Pending.
+          Data diambil dari API /admin/dashboard-stats.
+         ============================================================ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-tk-card p-6 rounded-xl border border-tk-border shadow-sm">
           <p className="text-[0.8rem] font-semibold text-tk-muted mb-2 uppercase">TOTAL PENGGUNA</p>
@@ -75,7 +89,12 @@ const DashboardAdmin = () => {
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* ============================================================
+          BAGIAN 3: Grid Utama (Main Grid)
+          Terdiri dari 2 bagian utama:
+          - Kiri (2/3): Tabel User Terbaru + shortcut navigasi kelola guru & murid
+          - Kanan (1/3): Widget verifikasi SPP pending dengan tombol Approve/Reject
+         ============================================================ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* User Management */}
         <div className="bg-tk-card rounded-xl border border-tk-border p-6 flex flex-col lg:col-span-2">
@@ -149,7 +168,11 @@ const DashboardAdmin = () => {
           </div>
         </div>
 
-        {/* SPP Verification */}
+        {/* ============================================================
+            BAGIAN 3B: Widget Verifikasi SPP (Sidebar kanan)
+            Menampilkan 3 pembayaran SPP pending terbaru dengan
+            tombol Approve (Lunas) dan Reject (Ditolak).
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl border border-tk-border p-6 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-[1.1rem] font-semibold m-0">Verifikasi SPP</h2>

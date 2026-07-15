@@ -4,6 +4,13 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Catatan Mengaji Siswa
+ * Deskripsi: Halaman guru untuk mencatat progress belajar mengaji siswa (Iqra/Al-Qur'an).
+ * Guru memilih siswa, tingkat Iqra, tanggal, dan catatan halaman/surah.
+ * Setiap simpan otomatis mengirim notifikasi ke wali murid terkait.
+ * Panel kanan menampilkan seluruh riwayat catatan mengaji kelas.
+ */
 export const InputMengaji = () => {
   const [students, setStudents] = useState([]);
   const [history, setHistory] = useState([]);
@@ -19,6 +26,7 @@ export const InputMengaji = () => {
 
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil data siswa dan riwayat catatan mengaji secara paralel
   const fetchData = async () => {
     try {
       const stRes = await axios.get(`${API_BASE}/guru/siswa`, {
@@ -44,6 +52,8 @@ export const InputMengaji = () => {
     fetchData();
   }, []);
 
+  // [Action] Submit catatan mengaji baru untuk siswa yang dipilih
+  // Format catatan: "[Tingkat] - [Catatan Halaman/Surah]"
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -89,8 +99,12 @@ export const InputMengaji = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Form Input */}
-        <form onSubmit={handleSubmit} className="bg-tk-card p-6 border border-tk-border rounded-xl shadow-sm flex flex-col gap-4">
+      {/* ============================================================
+          BAGIAN 1: Form Input Catatan Mengaji (Kiri / 1 kolom)
+          Form berisi: pilih siswa, tanggal, tingkat Iqra/Al-Qur'an,
+          dan textarea catatan perkembangan (hafalan/surah/halaman).
+         ============================================================ */}
+      <form onSubmit={handleSubmit} className="bg-tk-card p-6 border border-tk-border rounded-xl shadow-sm flex flex-col gap-4">
           <h2 className="text-base font-bold text-tk-primary m-0 border-b border-tk-border pb-3">Input Catatan Baru</h2>
           
           <div className="flex flex-col gap-1.5">
@@ -137,7 +151,11 @@ export const InputMengaji = () => {
           </button>
         </form>
 
-        {/* History List */}
+        {/* ============================================================
+            BAGIAN 2: Tabel Riwayat Catatan Mengaji (Kanan / 2 kolom)
+            Menampilkan seluruh riwayat catatan mengaji kelas:
+            tanggal, nama siswa, tingkat Iqra, dan catatan halaman.
+           ============================================================ */}
         <div className="lg:col-span-2 bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden flex flex-col">
           <h2 className="text-base font-bold text-tk-primary m-0 p-4 border-b border-tk-border bg-tk-bg">Riwayat Catatan Mengaji</h2>
           <div className="overflow-x-auto">

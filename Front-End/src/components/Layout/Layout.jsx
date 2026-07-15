@@ -6,12 +6,12 @@ import defaultAvatar from '../../assets/teacher_avatar.png';
 import logoTK from '../../assets/logo_tk.png';
 
 // ─────────────────────────────────────────────
-// Help content: keyed by role → path → page guide
-// Each page has: title, desc, features[], steps[]
+// Help content: keyed by role → ACTUAL path → page guide
+// Paths must match App.jsx route definitions exactly
 // ─────────────────────────────────────────────
 const HELP_CONTENT = {
   admin: {
-    '/admin/dashboard': {
+    '/admin': {
       title: 'Dashboard Admin',
       desc: 'Pusat informasi ringkasan sistem.',
       features: [
@@ -27,7 +27,7 @@ const HELP_CONTENT = {
         'Jika ada SPP menunggu, klik "Verifikasi Sekarang" untuk langsung ke halaman verifikasi.',
       ],
     },
-    '/admin/kelola-guru': {
+    '/admin/users': {
       title: 'Kelola Data Guru',
       desc: 'Manajemen akun dan data seluruh guru.',
       features: [
@@ -45,42 +45,30 @@ const HELP_CONTENT = {
         'Gunakan kolom pencarian di atas tabel untuk mencari guru berdasarkan nama.',
       ],
     },
-    '/admin/kelola-siswa': {
-      title: 'Kelola Data Siswa',
-      desc: 'Manajemen data siswa dan akun wali murid.',
+    '/admin/academic': {
+      title: 'Kelola Siswa & Kelas',
+      desc: 'Manajemen data siswa, akun wali murid, dan kelas.',
       features: [
         { icon: '➕', label: 'Tambah Siswa', desc: 'Menambah siswa otomatis membuat akun wali murid dan 12 tagihan SPP setahun.' },
         { icon: '✏️', label: 'Edit Siswa', desc: 'Perbarui data siswa lengkap termasuk data orang tua.' },
         { icon: '📤', label: 'Export CSV', desc: 'Unduh seluruh data siswa dalam format CSV siap cetak.' },
+        { icon: '🏫', label: 'Kelola Kelas', desc: 'Tambah, edit, dan hapus data kelas di halaman yang sama.' },
         { icon: '🔍', label: 'Pencarian', desc: 'Cari siswa berdasarkan nama atau kelas.' },
       ],
       steps: [
+        'Halaman ini memiliki dua tab: "Siswa" dan "Kelas" — pilih tab yang ingin dikelola.',
+        '— Tab Siswa —',
         'Klik tombol "Tambah Siswa" untuk membuka formulir pendaftaran.',
         'Isi data siswa: nama lengkap, nama panggilan, jenis kelamin, NISN, dan pilih kelas.',
         'Isi data orang tua: username & password akun wali, nama ayah, dan nama ibu.',
         'Klik "Simpan" — sistem otomatis membuat akun wali murid + 12 tagihan SPP untuk setahun.',
-        'Untuk mengedit, klik ikon pensil (✏️) pada baris siswa.',
-        'Klik "Export CSV" untuk mengunduh seluruh data siswa beserta data orang tua dalam file Excel.',
-        'Gunakan kolom pencarian untuk filter siswa berdasarkan nama.',
+        'Klik "Export CSV" untuk mengunduh seluruh data siswa dalam format yang bisa dibuka di Excel.',
+        '— Tab Kelas —',
+        'Klik "Tambah Kelas", isi nama kelas, tahun ajaran, dan kapasitas, lalu simpan.',
+        'Edit atau hapus kelas dengan klik ikon di kolom aksi pada tabel.',
       ],
     },
-    '/admin/kelola-kelas': {
-      title: 'Kelola Kelas',
-      desc: 'Manajemen data kelas dan tahun ajaran.',
-      features: [
-        { icon: '➕', label: 'Tambah Kelas', desc: 'Buat kelas baru dengan nama, tahun ajaran, dan kapasitas.' },
-        { icon: '✏️', label: 'Edit Kelas', desc: 'Perbarui informasi kelas yang sudah ada.' },
-        { icon: '🗑️', label: 'Hapus Kelas', desc: 'Hapus kelas yang sudah tidak digunakan.' },
-      ],
-      steps: [
-        'Klik tombol "Tambah Kelas" di bagian atas.',
-        'Isi nama kelas (contoh: "TK A1"), tahun ajaran (contoh: "2026/2027"), dan kapasitas murid.',
-        'Klik "Simpan" untuk menyimpan kelas baru.',
-        'Untuk mengedit, klik ikon pensil (✏️) pada baris kelas.',
-        'Untuk menghapus, klik ikon hapus (🗑️) — pastikan kelas sudah tidak memiliki siswa.',
-      ],
-    },
-    '/admin/verifikasi-spp': {
+    '/admin/spp': {
       title: 'Verifikasi SPP',
       desc: 'Proses verifikasi pembayaran SPP dari wali murid.',
       features: [
@@ -100,7 +88,7 @@ const HELP_CONTENT = {
     },
   },
   guru: {
-    '/guru/dashboard': {
+    '/guru': {
       title: 'Dashboard Guru',
       desc: 'Ringkasan aktivitas dan informasi kelas.',
       features: [
@@ -115,8 +103,8 @@ const HELP_CONTENT = {
         'Gunakan menu sidebar untuk berpindah ke fitur lain (Absensi, Perkembangan, dll).',
       ],
     },
-    '/guru/absensi': {
-      title: 'Kelola Absensi',
+    '/guru/absen': {
+      title: 'Absensi Harian',
       desc: 'Input dan kelola kehadiran siswa harian.',
       features: [
         { icon: '📅', label: 'Pilih Tanggal', desc: 'Pilih tanggal untuk melihat atau mengisi absensi hari tersebut.' },
@@ -133,8 +121,8 @@ const HELP_CONTENT = {
         'Jika tanggal sudah pernah diisi, data lama akan diperbarui otomatis (tidak duplikat).',
       ],
     },
-    '/guru/perkembangan': {
-      title: 'Perkembangan Akademik (Calistung)',
+    '/guru/nilai': {
+      title: 'Perkembangan Calistung',
       desc: 'Input laporan perkembangan mingguan tiap siswa.',
       features: [
         { icon: '📖', label: 'Membaca', desc: 'Catat tingkat kemampuan membaca siswa (Belum Bisa / Bisa / Lancar).' },
@@ -154,7 +142,7 @@ const HELP_CONTENT = {
     },
     '/guru/mengaji': {
       title: 'Catatan Mengaji',
-      desc: 'Rekam perkembangan mengaji (Iqra/Al-Qur\'an) tiap siswa.',
+      desc: "Rekam perkembangan mengaji (Iqra/Al-Qur'an) tiap siswa.",
       features: [
         { icon: '📖', label: 'Input Catatan', desc: 'Catat halaman dan progress mengaji siswa (contoh: Iqra 3 Hal. 12).' },
         { icon: '📅', label: 'Tanggal Otomatis', desc: 'Tanggal hari ini dipakai secara default, bisa diubah.' },
@@ -162,14 +150,14 @@ const HELP_CONTENT = {
       ],
       steps: [
         'Pilih siswa dari dropdown daftar siswa kelas Anda.',
-        'Isi catatan mengaji, contoh: "Iqra 3 Halaman 15" atau "Al-Qur\'an Juz 1 Hal. 5".',
+        "Isi catatan mengaji, contoh: \"Iqra 3 Halaman 15\" atau \"Al-Qur'an Juz 1 Hal. 5\".",
         'Pilih tanggal (default: hari ini, bisa diubah ke tanggal lain).',
         'Klik "Simpan" untuk menyimpan catatan.',
         'Orang tua akan otomatis mendapat notifikasi bahwa ada catatan mengaji baru.',
         'Riwayat catatan mengaji tampil di tabel bawah, diurutkan dari yang terbaru.',
       ],
     },
-    '/guru/kegiatan': {
+    '/guru/jadwal': {
       title: 'Kegiatan Luar Sekolah',
       desc: 'Kelola informasi kegiatan ekstrakurikuler dan event sekolah.',
       features: [
@@ -190,7 +178,7 @@ const HELP_CONTENT = {
     },
   },
   orangtua: {
-    '/orangtua/dashboard': {
+    '/orangtua': {
       title: 'Dashboard Orang Tua',
       desc: 'Informasi perkembangan anak Anda secara keseluruhan.',
       features: [
@@ -207,8 +195,8 @@ const HELP_CONTENT = {
         'Gunakan menu sidebar untuk mengakses halaman lainnya.',
       ],
     },
-    '/orangtua/profil-anak': {
-      title: 'Profil Anak',
+    '/orangtua/profile': {
+      title: 'Biodata Anak',
       desc: 'Data lengkap dan informasi pribadi anak.',
       features: [
         { icon: '👤', label: 'Data Pribadi', desc: 'Lihat dan perbarui informasi dasar anak (TTL, agama, dll).' },
@@ -217,7 +205,7 @@ const HELP_CONTENT = {
         { icon: '💾', label: 'Simpan Perubahan', desc: 'Semua perubahan langsung tersimpan ke database sekolah.' },
       ],
       steps: [
-        'Buka halaman Profil Anak dari menu sidebar.',
+        'Buka halaman Biodata Anak dari menu sidebar.',
         'Di tab "Data Pribadi", perbarui nama panggilan, tempat/tanggal lahir, agama, dan kewarganegaraan.',
         'Pindah ke tab "Alamat" untuk mengisi alamat lengkap dan nomor telepon orang tua.',
         'Di tab "Data Tambahan", isi hobi, cita-cita, golongan darah, berat/tinggi badan, dan riwayat imunisasi.',
@@ -225,62 +213,34 @@ const HELP_CONTENT = {
         'Klik "Simpan Perubahan" — data langsung tersimpan ke database sekolah.',
       ],
     },
-    '/orangtua/perkembangan': {
-      title: 'Perkembangan Akademik',
-      desc: 'Laporan perkembangan Calistung anak dari guru.',
+    '/orangtua/progress': {
+      title: 'Perkembangan Anak',
+      desc: 'Laporan perkembangan Calistung dan catatan mengaji anak dari guru.',
       features: [
-        { icon: '📖', label: 'Laporan Mingguan', desc: 'Lihat nilai membaca, berhitung, dan menulis per minggu.' },
+        { icon: '📖', label: 'Laporan Calistung', desc: 'Lihat nilai membaca, berhitung, dan menulis per minggu.' },
+        { icon: '🕌', label: 'Catatan Mengaji', desc: 'Rekam jejak progress mengaji Iqra/Al-Qur\'an anak.' },
         { icon: '📅', label: 'Riwayat Lengkap', desc: 'Semua laporan tersimpan dan bisa dilihat kapan saja.' },
         { icon: '📝', label: 'Catatan Guru', desc: 'Baca catatan dan komentar dari guru untuk anak Anda.' },
       ],
       steps: [
-        'Buka halaman "Perkembangan" dari menu sidebar.',
-        'Laporan akan tampil berurutan dari yang terbaru.',
-        'Setiap kartu laporan menampilkan: minggu ke, bulan/tahun, dan penilaian Membaca, Berhitung, Menulis.',
-        'Baca kolom "Catatan" untuk komentar tambahan dari guru.',
+        'Buka halaman "Perkembangan Anak" dari menu sidebar.',
+        'Pilih tab "Calistung" untuk melihat laporan membaca, berhitung, dan menulis.',
+        'Setiap kartu laporan menampilkan: minggu ke, bulan/tahun, nilai, dan catatan guru.',
+        'Pilih tab "Mengaji" untuk melihat catatan perkembangan mengaji anak.',
+        'Setiap catatan mengaji menampilkan tanggal dan progress (contoh: Iqra 3 Halaman 15).',
         'Anda akan mendapat notifikasi otomatis setiap kali guru menginput laporan baru.',
       ],
     },
-    '/orangtua/mengaji': {
-      title: 'Catatan Mengaji',
-      desc: 'Rekam jejak perkembangan mengaji anak.',
-      features: [
-        { icon: '📖', label: 'Progress Iqra', desc: 'Lihat catatan halaman dan buku Iqra/Al-Qur\'an yang sedang dipelajari.' },
-        { icon: '📅', label: 'Riwayat Tanggal', desc: 'Semua catatan disusun berdasarkan tanggal terbaru.' },
-      ],
-      steps: [
-        'Buka halaman "Mengaji" dari menu sidebar.',
-        'Daftar catatan mengaji akan tampil berurutan dari yang terbaru.',
-        'Setiap catatan menampilkan: tanggal, dan isi catatan guru (contoh: "Iqra 3 Halaman 15").',
-        'Anda akan mendapat notifikasi otomatis setiap kali guru menginput catatan mengaji baru.',
-      ],
-    },
-    '/orangtua/absensi': {
-      title: 'Absensi Anak',
-      desc: 'Rekap kehadiran anak di sekolah.',
-      features: [
-        { icon: '✅', label: 'Status Harian', desc: 'Lihat status kehadiran: Hadir, Sakit, Izin, atau Alfa.' },
-        { icon: '📝', label: 'Keterangan', desc: 'Baca keterangan yang diberikan guru untuk ketidakhadiran.' },
-        { icon: '📅', label: 'Riwayat Lengkap', desc: 'Semua data absensi selama satu tahun ajaran tersimpan.' },
-      ],
-      steps: [
-        'Buka halaman "Absensi" dari menu sidebar.',
-        'Tabel absensi menampilkan seluruh rekap kehadiran anak dari yang terbaru.',
-        'Kolom "Status" menunjukkan: Hadir (hijau), Sakit (kuning), Izin (biru), atau Alfa (merah).',
-        'Kolom "Keterangan" berisi catatan dari guru jika anak tidak hadir.',
-        'Data absensi sepanjang tahun ajaran tersimpan dan bisa dilihat kapan saja.',
-      ],
-    },
-    '/orangtua/kegiatan': {
-      title: 'Kegiatan Sekolah',
-      desc: 'Informasi kegiatan dan event sekolah.',
+    '/orangtua/reports': {
+      title: 'Kegiatan Luar Sekolah',
+      desc: 'Informasi kegiatan dan event yang diselenggarakan sekolah.',
       features: [
         { icon: '🎉', label: 'Daftar Kegiatan', desc: 'Lihat seluruh kegiatan luar sekolah yang diposting guru.' },
         { icon: '🖼️', label: 'Foto Kegiatan', desc: 'Lihat dokumentasi foto dari setiap kegiatan sekolah.' },
       ],
       steps: [
-        'Buka halaman "Kegiatan" dari menu sidebar.',
-        'Seluruh kegiatan luar sekolah tampil sebagai kartu, diurutkan dari yang terbaru.',
+        'Buka halaman "Kegiatan Luar Sekolah" dari menu sidebar.',
+        'Seluruh kegiatan tampil sebagai kartu, diurutkan dari yang terbaru.',
         'Setiap kartu menampilkan: judul kegiatan, tanggal, deskripsi, dan foto (jika ada).',
         'Anda akan mendapat notifikasi otomatis setiap kali ada kegiatan baru ditambahkan.',
       ],
@@ -295,7 +255,7 @@ const HELP_CONTENT = {
         { icon: '🔔', label: 'Notifikasi', desc: 'Admin mendapat notifikasi otomatis setiap Anda mengunggah bukti bayar.' },
       ],
       steps: [
-        'Buka halaman "SPP" dari menu sidebar.',
+        'Buka halaman "Pembayaran SPP" dari menu sidebar.',
         'Pilih tahun ajaran dari dropdown untuk melihat tagihan 12 bulan.',
         'Lihat status tiap bulan: "Belum Lunas" (merah), "Menunggu Verifikasi" (kuning), atau "Lunas" (hijau).',
         'Untuk membayar, klik tombol "Upload Bukti" pada bulan yang ingin dibayar.',
@@ -466,7 +426,10 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
 
   return (
     <div className="flex min-h-screen bg-tk-bg text-tk-text">
-      {/* Settings Modal */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 1: MODAL SETTINGS (UBAH FOTO PROFIL)
+          Menampilkan modal popup untuk mengunggah foto profil baru.
+          ──────────────────────────────────────────────────────── */}
       {showSettings && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={() => setShowSettings(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
@@ -505,8 +468,13 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
         </div>
       )}
 
-      {/* Sidebar */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 2: SIDEBAR NAVIGASI
+          Berisi Logo TK Islam Annur, list menu navigasi dinamis,
+          tombol panduan halaman, dan tombol logout.
+          ──────────────────────────────────────────────────────── */}
       <aside className="w-[260px] bg-tk-card border-r border-tk-border flex flex-col p-6 shrink-0 sticky top-0 h-screen box-border">
+        {/* Identitas TK & Logo */}
         <div className="mb-10 px-2">
           <div className="flex items-center gap-3">
             <img src={logoTK} alt="Logo TK Islam An Nur" className="w-10 h-10 rounded-md object-cover shrink-0" />
@@ -517,6 +485,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           </div>
         </div>
         
+        {/* List Link Menu */}
         <nav className="flex-1">
           <ul className="flex flex-col gap-2">
             {navItems.map(item => (
@@ -534,6 +503,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           </ul>
         </nav>
 
+        {/* Tombol Panduan Halaman & Logout */}
         <div className="mt-auto pt-6 border-t border-tk-border flex flex-col gap-2">
           <button
             onClick={() => setShowHelp(true)}
@@ -549,12 +519,17 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 3: HEADER UTAMA & KONTEN HALAMAN
+          Menampilkan bar navigasi atas (nama instansi, bell notifikasi,
+          foto profil user login) serta area outlet konten halaman.
+          ──────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Global Header */}
         <header className="h-[72px] bg-tk-card border-b border-tk-border flex justify-between items-center px-10 sticky top-0 z-50">
           <h2 className="text-xl font-bold text-tk-primary m-0">TK Islam Annur</h2>
           <div className="flex items-center gap-4">
+            {/* Fitur Notifikasi (Khusus Admin & Orang Tua) */}
             {role !== 'guru' && (() => {
               const unreadCount = notifications.filter(n => !n.is_read).length;
               return (
@@ -571,6 +546,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                     )}
                   </button>
 
+                  {/* Dropdown Notifikasi */}
                   {showNotifications && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
@@ -615,6 +591,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                 </div>
               );
             })()}
+            {/* Pemicu Edit Akun/Foto Profil */}
             <button
               title="Ubah Foto Profil"
               onClick={() => setShowSettings(true)}
@@ -636,29 +613,34 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           </div>
         </header>
 
-        {/* Page Content injected via Outlet */}
+        {/* Render Layar Menu Aktif */}
         <div className="p-10 flex-1 overflow-y-auto">
           <Outlet />
         </div>
       </main>
-      {/* ── Help Panel ── */}
+
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 4: SLIDE-IN PANEL PANDUAN HALAMAN (HELP)
+          Berisi penjelasan fungsi antarmuka halaman aktif dan 
+          langkah-langkah cara penggunaan bagi user terkait.
+          ──────────────────────────────────────────────────────── */}
       {showHelp && (() => {
         const roleKey = role === 'orangtua' ? 'orangtua' : role;
         const pageGuide = HELP_CONTENT[roleKey]?.[location.pathname];
         const roleLabel = role === 'admin' ? 'Administrator' : role === 'guru' ? 'Guru' : 'Orang Tua';
         return (
           <>
-            {/* Backdrop */}
+            {/* Backdrop Gelap Belakang */}
             <div
               className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-sm"
               onClick={() => setShowHelp(false)}
             />
-            {/* Slide-in Panel */}
+            {/* Panel Laci Samping */}
             <div
               className="fixed left-[260px] top-0 h-screen w-[360px] z-[100] flex flex-col shadow-2xl"
               style={{ animation: 'slideInFromLeft 0.25s cubic-bezier(.4,0,.2,1)' }}
             >
-              {/* Panel Header */}
+              {/* Header Panel */}
               <div className="bg-gradient-to-br from-tk-primary to-tk-primary-light p-6 flex flex-col gap-1 shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -675,17 +657,17 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                 <span className="text-white/70 text-xs font-medium mt-1">Anda login sebagai <strong className="text-white">{roleLabel}</strong></span>
               </div>
 
-              {/* Panel Body */}
+              {/* Isi Panel */}
               <div className="flex-1 overflow-y-auto bg-white">
                 {pageGuide ? (
                   <div className="p-6 flex flex-col gap-5">
-                    {/* Page title */}
+                    {/* Ringkasan Halaman */}
                     <div className="flex flex-col gap-1 pb-4 border-b border-tk-border">
                       <h3 className="text-tk-primary font-bold text-base m-0">{pageGuide.title}</h3>
                       <p className="text-tk-muted text-sm m-0">{pageGuide.desc}</p>
                     </div>
 
-                    {/* Feature list */}
+                    {/* Rincian Fungsi */}
                     <div className="flex flex-col gap-3">
                       <span className="text-xs font-bold text-tk-muted uppercase tracking-wider">Fungsi di Halaman Ini</span>
                       {pageGuide.features.map((f, i) => (
@@ -702,7 +684,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                       ))}
                     </div>
 
-                    {/* Cara Penggunaan */}
+                    {/* Langkah-langkah Pemakaian */}
                     {pageGuide.steps && pageGuide.steps.length > 0 && (
                       <div className="flex flex-col gap-3 pt-2">
                         <span className="text-xs font-bold text-tk-muted uppercase tracking-wider">Cara Penggunaan</span>
@@ -723,7 +705,6 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                     )}
                   </div>
                 ) : (
-                  // No specific guide for current page
                   <div className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full min-h-[300px]">
                     <span className="text-5xl">🗺️</span>
                     <div className="flex flex-col gap-1">
@@ -733,7 +714,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                   </div>
                 )}
 
-                {/* Quick nav */}
+                {/* Navigasi Cepat Halaman Lain */}
                 <div className="px-6 pb-6 flex flex-col gap-3">
                   <span className="text-xs font-bold text-tk-muted uppercase tracking-wider">Halaman Lainnya</span>
                   {Object.entries(HELP_CONTENT[roleKey] || {}).map(([path, page]) => (
@@ -752,7 +733,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                 </div>
               </div>
 
-              {/* Panel Footer */}
+              {/* Kaki Panel */}
               <div className="bg-tk-bg border-t border-tk-border p-4 shrink-0">
                 <p className="text-xs text-tk-muted text-center m-0">
                   Sistem Monitoring &amp; Akademik · TK Islam Annur

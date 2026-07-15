@@ -6,6 +6,15 @@ import studentAvatarGirl from '../../assets/student_avatar_2.png';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Kelola Data Siswa & Kelas
+ * Deskripsi: Halaman admin dengan dua tab utama:
+ * - Tab "Data Murid": Tabel siswa lengkap (foto, nama, jenis kelamin, kelas, wali murid),
+ *   pencarian, paginasi, tombol Tambah/Edit/Hapus siswa, dan ekspor CSV.
+ * - Tab "Data Kelas": Tabel kelas (nama, tahun ajaran, kapasitas, jumlah siswa),
+ *   tombol Tambah/Edit/Hapus kelas.
+ * Setiap tambah siswa baru: otomatis membuat akun wali murid + 12 tagihan SPP setahun.
+ */
 export const ManageSiswa = () => {
   const [tab, setTab] = useState('siswa'); // 'siswa' or 'kelas'
   const [siswa, setSiswa] = useState([]);

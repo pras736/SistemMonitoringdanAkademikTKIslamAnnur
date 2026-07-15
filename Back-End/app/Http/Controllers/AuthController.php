@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
+    /**
+     * Fitur: Autentikasi / Login Pengguna
+     * Deskripsi: Digunakan oleh semua role (Admin, Guru, Wali Murid) untuk masuk ke sistem.
+     * Mengembalikan token Sanctum, role user, dan informasi dasar akun.
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -38,6 +43,11 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Fitur: Perbarui Foto Profil
+     * Deskripsi: Digunakan oleh semua role untuk mengganti foto profil mereka.
+     * Menyimpan foto ke storage lokal publik dan menghapus foto profil yang lama jika ada.
+     */
     public function updateProfilePhoto(Request $request)
     {
         $request->validate([
@@ -64,6 +74,10 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Fitur: Logout Pengguna
+     * Deskripsi: Menghapus token akses Sanctum aktif agar pengguna keluar dari sistem secara aman.
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

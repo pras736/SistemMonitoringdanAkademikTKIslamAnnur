@@ -9,6 +9,12 @@ const INDO_MONTHS = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'
 ];
 
+/**
+ * Halaman: Informasi & Pembayaran SPP
+ * Deskripsi: Halaman wali murid untuk melihat daftar tagihan SPP bulanan anak
+ * dan mengunggah bukti transfer pembayaran. Upload bukti akan otomatis mengirim
+ * notifikasi ke Admin untuk diverifikasi.
+ */
 export const BayarSPP = () => {
   const [sppList, setSppList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +30,8 @@ export const BayarSPP = () => {
 
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil daftar tagihan SPP anak dan mengatur state pilihan awal
+  // Default pilihan: tagihan pertama yang belum lunas/menunggu verifikasi
   const fetchSPP = async () => {
     try {
       console.log('Fetching SPP list with token:', token ? token.substring(0, 10) + '...' : 'null');
@@ -54,6 +62,7 @@ export const BayarSPP = () => {
     fetchSPP();
   }, []);
 
+  // [Action] Mengubah pilihan tahun tagihan — otomatis menyesuaikan pilihan bulan
   const handleYearChange = (year) => {
     setSelectedYear(year);
     // Find first month for this year in sppList
@@ -67,6 +76,7 @@ export const BayarSPP = () => {
     }
   };
 
+  // [Action] Mengubah pilihan bulan tagihan — mencari id_spp yang sesuai
   const handleMonthChange = (month) => {
     setSelectedMonth(month);
     // Find match for this year and month
@@ -78,6 +88,8 @@ export const BayarSPP = () => {
     }
   };
 
+  // [Action] Submit upload bukti transfer — kirim file gambar ke API backend
+  // Setelah berhasil, status SPP berubah menjadi 'Menunggu Verifikasi'
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!selectedSppId) {
@@ -135,7 +147,11 @@ export const BayarSPP = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Upload Form */}
+      {/* ============================================================
+          BAGIAN 1: Form Upload Bukti Pembayaran (Kiri / 1 kolom)
+          Form berisi: selector tahun, selector bulan tagihan, preview info SPP
+          (nominal + status), dan input file bukti transfer.
+         ============================================================ */}
         <form onSubmit={handleUploadSubmit} className="bg-tk-card border border-tk-border rounded-xl p-6 shadow-sm flex flex-col gap-4">
           <h2 className="text-base font-bold text-tk-primary m-0 border-b border-tk-border pb-3">Upload Bukti Pembayaran</h2>
 
@@ -210,7 +226,11 @@ export const BayarSPP = () => {
           </button>
         </form>
 
-        {/* SPP list */}
+        {/* ============================================================
+            BAGIAN 2: Tabel Daftar Tagihan SPP (Kanan / 2 kolom)
+            Menampilkan seluruh riwayat tagihan 12 bulan:
+            bulan/tahun, nominal, status (badge berwarna), dan tanggal bayar.
+           ============================================================ */}
         <div className="lg:col-span-2 bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden flex flex-col">
           <h2 className="text-base font-bold text-tk-primary m-0 p-4 border-b border-tk-border bg-tk-bg">Daftar Tagihan SPP</h2>
           <div className="overflow-x-auto">

@@ -5,6 +5,11 @@ import defaultAvatar from '../../assets/teacher_avatar.png';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Kelola Data Guru
+ * Deskripsi: Halaman admin untuk mengelola data guru — tambah, edit, dan hapus guru
+ * beserta akun login mereka. Dilengkapi pencarian dan paginasi.
+ */
 export const ManageGuru = () => {
   const [gurus, setGurus] = useState([]);
   const [kelas, setKelas] = useState([]);
@@ -28,6 +33,7 @@ export const ManageGuru = () => {
 
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil daftar semua guru dari API backend
   const fetchGurus = async () => {
     try {
       const res = await axios.get(`${API_BASE}/admin/guru`, {
@@ -54,6 +60,7 @@ export const ManageGuru = () => {
     Promise.all([fetchGurus(), fetchKelas()]).finally(() => setLoading(false));
   }, []);
 
+  // [Action] Membuka modal Tambah Guru baru dengan form kosong
   const handleOpenAdd = () => {
     setEditingId(null);
     setUsername('');
@@ -66,6 +73,7 @@ export const ManageGuru = () => {
     setShowModal(true);
   };
 
+  // [Action] Membuka modal Edit Guru, mengisi form dengan data guru yang ada
   const handleOpenEdit = (guru) => {
     setEditingId(guru.id_guru);
     setUsername(guru.user?.username || '');
@@ -114,6 +122,7 @@ export const ManageGuru = () => {
     }
   };
 
+  // [Action] Hapus guru beserta akun login-nya dari sistem
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus data guru ini? Akun login guru juga akan terhapus.')) {
       try {
@@ -145,6 +154,10 @@ export const ManageGuru = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* ============================================================
+          BAGIAN 1: Header Halaman
+          Judul halaman + tombol "Tambah Guru" untuk membuka modal form.
+         ============================================================ */}
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-tk-primary m-0">Mengelola Data Guru</h1>
@@ -155,7 +168,10 @@ export const ManageGuru = () => {
         </button>
       </header>
 
-      {/* Search Bar */}
+      {/* ============================================================
+          BAGIAN 2: Search Bar
+          Input pencarian untuk memfilter guru berdasarkan nama, NIP, atau kelas.
+         ============================================================ */}
       <div className="flex justify-between items-center gap-4 bg-tk-card p-4 rounded-xl border border-tk-border shadow-sm">
         <div className="relative flex-1 max-w-md">
           <input
@@ -168,6 +184,11 @@ export const ManageGuru = () => {
         </div>
       </div>
 
+      {/* ============================================================
+          BAGIAN 3: Tabel Daftar Guru
+          Menampilkan NIP, nama guru (dengan foto profil), username, nomor telepon,
+          dan kelas yang diampu. Bisa Edit atau Hapus setiap baris data.
+         ============================================================ */}
       <div className="bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden">
         <table className="w-full border-collapse text-left">
           <thead>
@@ -255,6 +276,11 @@ export const ManageGuru = () => {
         )}
       </div>
 
+      {/* ============================================================
+          BAGIAN 4: Modal Form Tambah / Edit Guru
+          Dialog overlay yang muncul saat admin menekan tombol Tambah/Edit.
+          Berisi field: Nama, NIP, No. Telp, Wali Kelas, Username, Password.
+         ============================================================ */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[999] p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-tk-border animate-in fade-in zoom-in duration-200">

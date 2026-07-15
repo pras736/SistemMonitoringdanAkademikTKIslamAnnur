@@ -21,11 +21,19 @@ class AdminController extends Controller
     // ==========================================
     // KELAS MANAGEMENT
     // ==========================================
+    /**
+     * Fitur: Daftar Kelas
+     * Deskripsi: Mendapatkan seluruh daftar kelas yang terdaftar di sekolah.
+     */
     public function listKelas()
     {
         return response()->json(Kelas::all());
     }
 
+    /**
+     * Fitur: Tambah Kelas Baru
+     * Deskripsi: Membuat kelas baru dengan nama kelas, tahun ajaran, dan batasan kapasitas murid.
+     */
     public function storeKelas(Request $request)
     {
         $validated = $request->validate([
@@ -38,6 +46,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Kelas berhasil ditambahkan', 'data' => $kelas], 210);
     }
 
+    /**
+     * Fitur: Update Data Kelas
+     * Deskripsi: Memperbarui informasi nama kelas, tahun ajaran, dan kapasitas kelas tertentu.
+     */
     public function updateKelas(Request $request, $id)
     {
         $kelas = Kelas::findOrFail($id);
@@ -51,6 +63,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Kelas berhasil diupdate', 'data' => $kelas]);
     }
 
+    /**
+     * Fitur: Hapus Kelas
+     * Deskripsi: Menghapus kelas tertentu dari sistem.
+     */
     public function deleteKelas($id)
     {
         $kelas = Kelas::findOrFail($id);
@@ -61,11 +77,19 @@ class AdminController extends Controller
     // ==========================================
     // GURU MANAGEMENT
     // ==========================================
+    /**
+     * Fitur: Daftar Guru
+     * Deskripsi: Mendapatkan data seluruh guru lengkap beserta informasi akun user dan kelas yang diampunya.
+     */
     public function listGuru()
     {
         return response()->json(Guru::with(['user', 'kelas'])->get());
     }
 
+    /**
+     * Fitur: Tambah Guru Baru
+     * Deskripsi: Mendaftarkan guru baru beserta pembuatan akun login (username & password) dalam satu transaksi.
+     */
     public function storeGuru(Request $request)
     {
         $request->validate([
@@ -97,6 +121,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Guru berhasil ditambahkan', 'data' => $guru], 201);
     }
 
+    /**
+     * Fitur: Update Data Guru
+     * Deskripsi: Memperbarui profil data guru serta informasi kredensial akun login guru terkait.
+     */
     public function updateGuru(Request $request, $id)
     {
         $guru = Guru::findOrFail($id);
@@ -131,6 +159,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Guru berhasil diupdate']);
     }
 
+    /**
+     * Fitur: Hapus Guru
+     * Deskripsi: Menghapus data guru beserta akun login guru terkait dari sistem.
+     */
     public function deleteGuru($id)
     {
         $guru = Guru::findOrFail($id);
@@ -145,11 +177,20 @@ class AdminController extends Controller
     // ==========================================
     // SISWA (ANAK) MANAGEMENT
     // ==========================================
+    /**
+     * Fitur: Daftar Murid/Siswa
+     * Deskripsi: Mendapatkan seluruh daftar murid beserta relasi kelas, wali murid (user), alamat, dan data kesehatannya.
+     */
     public function listSiswa()
     {
         return response()->json(Anak::with(['kelas', 'orangTuas.user', 'dataAnak', 'alamatAnak'])->get());
     }
 
+    /**
+     * Fitur: Tambah Siswa & Wali Murid Baru
+     * Deskripsi: Menambahkan data siswa baru, menautkan ke kelas, membuat data alamat/tambahan default, membuat akun wali murid,
+     * serta mengenerate secara otomatis tagihan SPP nominal Rp 330.000 selama 12 bulan (1 tahun ajaran).
+     */
     public function storeSiswa(Request $request)
     {
         $request->validate([
@@ -247,6 +288,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Siswa dan Orang Tua berhasil ditambahkan', 'data' => $siswa], 201);
     }
 
+    /**
+     * Fitur: Update Data Siswa & Wali
+     * Deskripsi: Mengedit data pribadi siswa dan menautkan ulang kelas, serta mengupdate nama & akun wali murid.
+     */
     public function updateSiswa(Request $request, $id)
     {
         $anak = Anak::findOrFail($id);
@@ -301,6 +346,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Data Siswa dan Wali berhasil diupdate', 'data' => $anak]);
     }
 
+    /**
+     * Fitur: Hapus Siswa
+     * Deskripsi: Menghapus data siswa dan akun login wali muridnya dalam satu transaksi.
+     */
     public function deleteSiswa($id)
     {
         $anak = Anak::findOrFail($id);
@@ -323,17 +372,29 @@ class AdminController extends Controller
     // ==========================================
     // SPP MANAGEMENT
     // ==========================================
+    /**
+     * Fitur: SPP Menunggu Verifikasi
+     * Deskripsi: Menampilkan seluruh bukti pembayaran SPP dari wali murid yang menunggu konfirmasi admin.
+     */
     public function listPendingSPP()
     {
         return response()->json(Spp::with('anak')->where('status_pembayaran', 'Menunggu Verifikasi')->get());
     }
 
+    /**
+     * Fitur: Semua Riwayat SPP
+     * Deskripsi: Mendapatkan seluruh riwayat pembayaran SPP dibatasi maksimal 200 data teratas.
+     */
     public function listAllSPP()
     {
         // Limit to 200 records as safety guard — prevents loading entire table
         return response()->json(Spp::with('anak')->orderBy('created_at', 'desc')->limit(200)->get());
     }
 
+    /**
+     * Fitur: Verifikasi Pembayaran SPP
+     * Deskripsi: Admin mengubah status pembayaran SPP menjadi Lunas (Disetujui) atau Ditolak.
+     */
     public function verifySPP(Request $request, $id)
     {
         $spp = Spp::findOrFail($id);
@@ -353,6 +414,10 @@ class AdminController extends Controller
         return response()->json(['message' => 'Verifikasi SPP berhasil diperbarui', 'data' => $spp]);
     }
 
+    /**
+     * Fitur: Ekspor Data Siswa Ke CSV
+     * Deskripsi: Mendownload seluruh data siswa, data tambahan, alamat, serta profile wali murid ke file spreadsheet CSV.
+     */
     public function exportSiswa()
     {
         $headers = [
@@ -448,6 +513,10 @@ class AdminController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    /**
+     * Fitur: Statistik & Data Dashboard Admin
+     * Deskripsi: Menampilkan total data agregasi (jumlah kelas, guru, siswa) serta menampilkan 5 akun user terbaru dan 3 pembayaran SPP pending terbaru.
+     */
     public function dashboardStats(Request $request)
     {
         $totalSiswa = Anak::count();

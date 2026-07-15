@@ -130,11 +130,7 @@ const Login = () => {
           </form>
 
           <div className="login-footer">
-            <p className="login-footer-text">New to KindyBloom? <a href="#" className="login-footer-link">Register now</a></p>
-            <div className="login-footer-links">
-              <a href="#" className="login-footer-sublink"><Icons.Help /> Help Center</a>
-              <a href="#" className="login-footer-sublink"><Icons.Check /> Privacy Policy</a>
-            </div>
+            <p className="login-footer-text">Don't have an account? Contact your teacher or School Administration </p>
           </div>
         </div>
       </div>

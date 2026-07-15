@@ -4,6 +4,11 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Info Kegiatan Sekolah
+ * Deskripsi: Halaman wali murid untuk melihat daftar seluruh agenda dan kegiatan
+ * luar sekolah yang dipublikasikan oleh guru, lengkap dengan foto dan deskripsi.
+ */
 export const ListKegiatan = () => {
   const [kegiatans, setKegiatans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,6 +16,7 @@ export const ListKegiatan = () => {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
+    // [Data Fetching] Mengambil daftar kegiatan dari API wali/kegiatan
     const fetchKegiatans = async () => {
       try {
         const res = await axios.get(`${API_BASE}/wali/kegiatan`, {
@@ -36,11 +42,20 @@ export const ListKegiatan = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* ============================================================
+          BAGIAN 1: Header Halaman
+          Judul dan deskripsi singkat.
+         ============================================================ */}
       <header>
         <h1 className="text-2xl font-bold text-tk-primary m-0">Info Kegiatan Sekolah</h1>
         <p className="text-tk-muted text-[0.9rem] mt-1 m-0">Lihat agenda, pengumuman, dan foto kegiatan luar sekolah buah hati Anda.</p>
       </header>
 
+      {/* ============================================================
+          BAGIAN 2: Grid Kartu Kegiatan
+          Setiap kartu menampilkan foto kegiatan (atau placeholder), tanggal,
+          judul, dan deskripsi lengkap kegiatan.
+         ============================================================ */}
       {kegiatans.length === 0 ? (
         <div className="bg-tk-card border border-tk-border rounded-xl p-8 text-center text-tk-muted">Belum ada pengumuman kegiatan baru saat ini.</div>
       ) : (
