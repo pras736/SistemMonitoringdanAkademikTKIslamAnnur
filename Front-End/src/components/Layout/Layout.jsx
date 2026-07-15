@@ -426,7 +426,10 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
 
   return (
     <div className="flex min-h-screen bg-tk-bg text-tk-text">
-      {/* Settings Modal */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 1: MODAL SETTINGS (UBAH FOTO PROFIL)
+          Menampilkan modal popup untuk mengunggah foto profil baru.
+          ──────────────────────────────────────────────────────── */}
       {showSettings && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={() => setShowSettings(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
@@ -465,8 +468,13 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
         </div>
       )}
 
-      {/* Sidebar */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 2: SIDEBAR NAVIGASI
+          Berisi Logo TK Islam Annur, list menu navigasi dinamis,
+          tombol panduan halaman, dan tombol logout.
+          ──────────────────────────────────────────────────────── */}
       <aside className="w-[260px] bg-tk-card border-r border-tk-border flex flex-col p-6 shrink-0 sticky top-0 h-screen box-border">
+        {/* Identitas TK & Logo */}
         <div className="mb-10 px-2">
           <div className="flex items-center gap-3">
             <img src={logoTK} alt="Logo TK Islam An Nur" className="w-10 h-10 rounded-md object-cover shrink-0" />
@@ -477,6 +485,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           </div>
         </div>
         
+        {/* List Link Menu */}
         <nav className="flex-1">
           <ul className="flex flex-col gap-2">
             {navItems.map(item => (
@@ -494,6 +503,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           </ul>
         </nav>
 
+        {/* Tombol Panduan Halaman & Logout */}
         <div className="mt-auto pt-6 border-t border-tk-border flex flex-col gap-2">
           <button
             onClick={() => setShowHelp(true)}
@@ -509,12 +519,17 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 3: HEADER UTAMA & KONTEN HALAMAN
+          Menampilkan bar navigasi atas (nama instansi, bell notifikasi,
+          foto profil user login) serta area outlet konten halaman.
+          ──────────────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Global Header */}
         <header className="h-[72px] bg-tk-card border-b border-tk-border flex justify-between items-center px-10 sticky top-0 z-50">
           <h2 className="text-xl font-bold text-tk-primary m-0">TK Islam Annur</h2>
           <div className="flex items-center gap-4">
+            {/* Fitur Notifikasi (Khusus Admin & Orang Tua) */}
             {role !== 'guru' && (() => {
               const unreadCount = notifications.filter(n => !n.is_read).length;
               return (
@@ -531,6 +546,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                     )}
                   </button>
 
+                  {/* Dropdown Notifikasi */}
                   {showNotifications && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
@@ -575,6 +591,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                 </div>
               );
             })()}
+            {/* Pemicu Edit Akun/Foto Profil */}
             <button
               title="Ubah Foto Profil"
               onClick={() => setShowSettings(true)}
@@ -596,30 +613,34 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
           </div>
         </header>
 
-        {/* Page Content injected via Outlet */}
+        {/* Render Layar Menu Aktif */}
         <div className="p-10 flex-1 overflow-y-auto">
           <Outlet />
         </div>
       </main>
 
-      {/* ── Help Panel ── */}
+      {/* ────────────────────────────────────────────────────────
+          BAGIAN 4: SLIDE-IN PANEL PANDUAN HALAMAN (HELP)
+          Berisi penjelasan fungsi antarmuka halaman aktif dan 
+          langkah-langkah cara penggunaan bagi user terkait.
+          ──────────────────────────────────────────────────────── */}
       {showHelp && (() => {
         const roleKey = role === 'orangtua' ? 'orangtua' : role;
         const pageGuide = HELP_CONTENT[roleKey]?.[location.pathname];
         const roleLabel = role === 'admin' ? 'Administrator' : role === 'guru' ? 'Guru' : 'Orang Tua';
         return (
           <>
-            {/* Backdrop */}
+            {/* Backdrop Gelap Belakang */}
             <div
               className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-sm"
               onClick={() => setShowHelp(false)}
             />
-            {/* Slide-in Panel */}
+            {/* Panel Laci Samping */}
             <div
               className="fixed left-[260px] top-0 h-screen w-[360px] z-[100] flex flex-col shadow-2xl"
               style={{ animation: 'slideInFromLeft 0.25s cubic-bezier(.4,0,.2,1)' }}
             >
-              {/* Panel Header */}
+              {/* Header Panel */}
               <div className="bg-gradient-to-br from-tk-primary to-tk-primary-light p-6 flex flex-col gap-1 shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -636,17 +657,17 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                 <span className="text-white/70 text-xs font-medium mt-1">Anda login sebagai <strong className="text-white">{roleLabel}</strong></span>
               </div>
 
-              {/* Panel Body */}
+              {/* Isi Panel */}
               <div className="flex-1 overflow-y-auto bg-white">
                 {pageGuide ? (
                   <div className="p-6 flex flex-col gap-5">
-                    {/* Page title */}
+                    {/* Ringkasan Halaman */}
                     <div className="flex flex-col gap-1 pb-4 border-b border-tk-border">
                       <h3 className="text-tk-primary font-bold text-base m-0">{pageGuide.title}</h3>
                       <p className="text-tk-muted text-sm m-0">{pageGuide.desc}</p>
                     </div>
 
-                    {/* Feature list */}
+                    {/* Rincian Fungsi */}
                     <div className="flex flex-col gap-3">
                       <span className="text-xs font-bold text-tk-muted uppercase tracking-wider">Fungsi di Halaman Ini</span>
                       {pageGuide.features.map((f, i) => (
@@ -663,7 +684,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                       ))}
                     </div>
 
-                    {/* Cara Penggunaan */}
+                    {/* Langkah-langkah Pemakaian */}
                     {pageGuide.steps && pageGuide.steps.length > 0 && (
                       <div className="flex flex-col gap-3 pt-2">
                         <span className="text-xs font-bold text-tk-muted uppercase tracking-wider">Cara Penggunaan</span>
@@ -684,7 +705,6 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                     )}
                   </div>
                 ) : (
-                  // No specific guide for current page
                   <div className="p-6 flex flex-col items-center justify-center gap-4 text-center h-full min-h-[300px]">
                     <span className="text-5xl">🗺️</span>
                     <div className="flex flex-col gap-1">
@@ -694,7 +714,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                   </div>
                 )}
 
-                {/* Quick nav */}
+                {/* Navigasi Cepat Halaman Lain */}
                 <div className="px-6 pb-6 flex flex-col gap-3">
                   <span className="text-xs font-bold text-tk-muted uppercase tracking-wider">Halaman Lainnya</span>
                   {Object.entries(HELP_CONTENT[roleKey] || {}).map(([path, page]) => (
@@ -713,7 +733,7 @@ export const Layout = ({ role = 'guru', navItems, userAvatar, userName }) => {
                 </div>
               </div>
 
-              {/* Panel Footer */}
+              {/* Kaki Panel */}
               <div className="bg-tk-bg border-t border-tk-border p-4 shrink-0">
                 <p className="text-xs text-tk-muted text-center m-0">
                   Sistem Monitoring &amp; Akademik · TK Islam Annur

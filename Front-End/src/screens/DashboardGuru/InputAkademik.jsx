@@ -16,6 +16,13 @@ const BULAN_LIST = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
 
+/**
+ * Halaman: Input Perkembangan Akademik Mingguan
+ * Deskripsi: Halaman guru untuk menginput nilai perkembangan calistung (membaca, menulis,
+ * berhitung) per siswa per minggu. Guru memilih siswa, periode minggu/bulan/tahun,
+ * lalu mengisi nilai menggunakan skala BB/MB/BSH/BSB dan catatan guru.
+ * Setiap simpan mengirimkan notifikasi real-time ke wali murid terkait.
+ */
 export const InputAkademik = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +43,7 @@ export const InputAkademik = () => {
 
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil daftar siswa kelas guru dari API backend
   const fetchStudents = async () => {
     try {
       const res = await axios.get(`${API_BASE}/guru/siswa`, {
@@ -52,6 +60,8 @@ export const InputAkademik = () => {
     }
   };
 
+  // [Data Fetching] Mengambil data perkembangan yang sudah tersimpan untuk siswa & periode dipilih
+  // Jika sudah ada data, isi form — jika belum, reset ke nilai default BB
   const fetchProgressForStudent = async (studentId) => {
     if (!studentId) return;
     try {
@@ -87,6 +97,7 @@ export const InputAkademik = () => {
     }
   }, [selectedStudent, mingguKe, bulan, tahun]);
 
+  // [Action] Simpan/update perkembangan akademik siswa ke backend (updateOrCreate)
   const handleSave = async (e) => {
     e.preventDefault();
     if (!selectedStudent) return;
@@ -127,7 +138,11 @@ export const InputAkademik = () => {
         <p className="text-tk-muted text-[0.9rem] mt-1 m-0">Input catatan perkembangan membaca, menulis, dan berhitung siswa per minggu.</p>
       </header>
 
-      {/* Selector Area */}
+      {/* ============================================================
+          BAGIAN 1: Panel Selector
+          Kontrol untuk memilih siswa, minggu ke, bulan, dan tahun penilaian.
+          Perubahan pilihan otomatis me-refresh nilai yang sudah tersimpan.
+         ============================================================ */}
       <div className="bg-tk-card p-6 border border-tk-border rounded-xl shadow-sm flex gap-4 flex-wrap items-center">
         <div className="flex flex-col gap-1.5 min-w-[150px]">
           <label className="text-sm font-semibold text-tk-text">Pilih Siswa</label>
@@ -176,6 +191,12 @@ export const InputAkademik = () => {
         </div>
       )}
 
+      {/* ============================================================
+          BAGIAN 2: Form Input Perkembangan Siswa
+          Panel input nilai: 3 kolom (Membaca, Berhitung, Menulis) masing-masing
+          berisi dropdown skala BB/MB/BSH/BSB + 1 textarea Catatan Guru.
+          Hanya muncul jika ada siswa yang dipilih.
+         ============================================================ */}
       {selectedStudent && (
         <form onSubmit={handleSave} className="bg-tk-card p-8 border border-tk-border rounded-xl shadow-sm flex flex-col gap-6">
           <h2 className="text-lg font-bold text-tk-primary m-0 pb-3 border-b border-tk-border">

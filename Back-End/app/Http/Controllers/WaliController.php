@@ -22,6 +22,10 @@ class WaliController extends Controller
     // (e.g. uploadSPPProof calls it, then other logic runs — was 2 queries every call)
     private ?Anak $anakCache = null;
 
+    /**
+     * Helper Internal: Ambil Data Anak
+     * Deskripsi: Mengambil relasi profil anak milik Wali Murid yang login dan menyimpan hasilnya di cache lokal objek.
+     */
     private function getAnak(Request $request)
     {
         if ($this->anakCache !== null) {
@@ -38,6 +42,10 @@ class WaliController extends Controller
         return $this->anakCache;
     }
 
+    /**
+     * Fitur: Informasi Anak Saya
+     * Deskripsi: Menampilkan biodata lengkap anak dari wali murid yang sedang aktif login.
+     */
     public function getMyChildInfo(Request $request)
     {
         $anak = $this->getAnak($request);
@@ -47,6 +55,10 @@ class WaliController extends Controller
         return response()->json($anak);
     }
 
+    /**
+     * Fitur: Perbarui Profil Anak & Orang Tua
+     * Deskripsi: Memperbarui data umum anak, data tambahan/kesehatan, alamat tinggal, dan data orang tua (ayah/ibu).
+     */
     public function updateChildProfile(Request $request)
     {
         $anak = $this->getAnak($request);
@@ -130,6 +142,10 @@ class WaliController extends Controller
         ]);
     }
 
+    /**
+     * Fitur: Riwayat Perkembangan Akademik
+     * Deskripsi: Menampilkan rekam perkembangan membaca, menulis, berhitung (calistung) anak yang diinput guru.
+     */
     public function getChildAcademicProgress(Request $request)
     {
         $anak = $this->getAnak($request);
@@ -144,6 +160,10 @@ class WaliController extends Controller
         return response()->json($progress);
     }
 
+    /**
+     * Fitur: Riwayat Mengaji anak
+     * Deskripsi: Menampilkan riwayat perkembangan membaca Iqra atau Al-Qur'an anak dari guru.
+     */
     public function getChildNgajiProgress(Request $request)
     {
         $anak = $this->getAnak($request);
@@ -156,6 +176,10 @@ class WaliController extends Controller
         return response()->json($progress);
     }
 
+    /**
+     * Fitur: Riwayat Kehadiran (Absensi)
+     * Deskripsi: Menampilkan riwayat absensi harian anak (Hadir, Sakit, Izin, Alfa).
+     */
     public function getChildAbsensi(Request $request)
     {
         $anak = $this->getAnak($request);
@@ -168,14 +192,19 @@ class WaliController extends Controller
         return response()->json($absensi);
     }
 
+    /**
+     * Fitur: Daftar Kegiatan Sekolah
+     * Deskripsi: Menampilkan daftar seluruh agenda/kegiatan luar sekolah yang aktif.
+     */
     public function getKegiatanList()
     {
         return response()->json(Kegiatan::orderBy('tanggal', 'desc')->get());
     }
 
-    // ==========================================
-    // SPP
-    // ==========================================
+    /**
+     * Fitur: Riwayat Pembayaran SPP
+     * Deskripsi: Menampilkan daftar tagihan bulanan SPP siswa beserta status pembayarannya.
+     */
     public function getMySPPList(Request $request)
     {
         $anak = $this->getAnak($request);
@@ -190,6 +219,11 @@ class WaliController extends Controller
         return response()->json($sppList);
     }
 
+    /**
+     * Fitur: Unggah Bukti Bayar SPP
+     * Deskripsi: Wali murid mengunggah file bukti transfer SPP untuk diverifikasi Admin.
+     * Mengirimkan notifikasi baru ke semua Administrator secara real-time.
+     */
     public function uploadSPPProof(Request $request)
     {
         $request->validate([

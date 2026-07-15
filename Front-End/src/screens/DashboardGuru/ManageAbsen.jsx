@@ -4,6 +4,12 @@ import { Icons } from '../../components/Icons';
 
 const API_BASE = 'http://127.0.0.1:8000/api';
 
+/**
+ * Halaman: Kelola Absensi Siswa
+ * Deskripsi: Halaman guru untuk mencatat kehadiran harian seluruh siswa di kelasnya.
+ * Guru memilih tanggal, lalu menandai status tiap siswa (Hadir/Sakit/Izin/Alfa)
+ * beserta keterangan opsional, kemudian menyimpannya ke server.
+ */
 export const ManageAbsen = () => {
   const [students, setStudents] = useState([]);
   const [tanggal, setTanggal] = useState(new Date().toISOString().split('T')[0]);
@@ -14,6 +20,7 @@ export const ManageAbsen = () => {
 
   const token = localStorage.getItem('token');
 
+  // [Data Fetching] Mengambil daftar siswa yang terdaftar di kelas guru
   const fetchStudents = async () => {
     try {
       const res = await axios.get(`${API_BASE}/guru/siswa`, {
@@ -27,6 +34,8 @@ export const ManageAbsen = () => {
     }
   };
 
+  // [Data Fetching] Mengambil data absensi pada tanggal yang dipilih
+  // Setelah fetch, preset status hadir untuk semua siswa, lalu override dengan data backend
   const fetchAbsensi = async (currentStudents) => {
     try {
       const res = await axios.get(`${API_BASE}/guru/absensi?tanggal=${tanggal}`, {
@@ -83,6 +92,7 @@ export const ManageAbsen = () => {
     }));
   };
 
+  // [Action] Menyimpan seluruh data absensi hari ini ke server (bulk save)
   const handleSave = async () => {
     setSaving(true);
     setSuccessMsg('');
@@ -113,6 +123,10 @@ export const ManageAbsen = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* ============================================================
+          BAGIAN 1: Header Halaman + Kontrol Tanggal
+          Judul halaman, input pemilih tanggal absensi, dan tombol "Simpan Absensi".
+         ============================================================ */}
       <header className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-tk-primary m-0">Mengelola Absensi Siswa</h1>
@@ -126,12 +140,21 @@ export const ManageAbsen = () => {
         </div>
       </header>
 
+      {/* ============================================================
+          BAGIAN 2: Notifikasi Sukses
+          Banner hijau muncul sementara setelah absensi berhasil disimpan.
+         ============================================================ */}
       {successMsg && (
         <div className="bg-green-100 text-green-700 border border-green-200 p-4 rounded-lg font-semibold text-sm animate-in fade-in slide-in-from-top-2">
           {successMsg}
         </div>
       )}
 
+      {/* ============================================================
+          BAGIAN 3: Tabel Absensi Siswa
+          Satu baris per siswa — berisi nama dan 4 radio button (Hadir/Sakit/Izin/Alfa)
+          dan kolom input keterangan opsional (misal: alasan sakit).
+         ============================================================ */}
       <div className="bg-tk-card border border-tk-border rounded-xl shadow-sm overflow-hidden">
         <table className="w-full border-collapse text-left">
           <thead>

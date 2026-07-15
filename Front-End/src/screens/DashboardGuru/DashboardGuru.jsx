@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Icons } from '../../components/Icons';
+/**
+ * Halaman: Dashboard Guru
+ * Deskripsi: Halaman utama guru yang menampilkan widget kehadiran harian siswa,
+ * catatan mengaji terkini, dan preview input perkembangan calistung.
+ */
 export const DashboardGuru = () => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [mengajiData, setMengajiData] = useState([]);
@@ -76,7 +81,10 @@ export const DashboardGuru = () => {
 
   return (
     <div className="flex flex-col text-tk-text">
-      {/* Page Header (Greeting) */}
+      {/* ============================================================
+          BAGIAN 1: Header / Sambutan Guru
+          Menampilkan sapaan kepada guru yang login saat ini.
+         ============================================================ */}
       <header className="flex justify-between items-center mb-10">
         <div>
           <h1 className="text-3xl font-bold text-tk-text mb-1">Assalamu'alaikum, Bu. Sarah!</h1>
@@ -85,9 +93,16 @@ export const DashboardGuru = () => {
         
       </header>
 
-      {/* Dashboard Content Grid */}
+      {/* ============================================================
+          BAGIAN 2: Grid Konten Dashboard Guru
+          Layout 3 kolom berisi 3 widget utama.
+         ============================================================ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Daily Attendance Widget */}
+        {/* ============================================================
+            BAGIAN 2A: Widget Absensi Harian (1 kolom)
+            Menampilkan status hadir/tidak hadir seluruh siswa kelas hari ini.
+            Data real-time dari API /guru/absensi?tanggal={hari_ini}.
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl p-6 shadow-sm flex flex-col border border-tk-border">
           <div className="flex justify-between items-center mb-6">
             <h2 className="flex items-center gap-2 text-[1.1rem] font-semibold text-tk-primary"><Icons.Absen /> Daily Attendance</h2>
@@ -112,7 +127,11 @@ export const DashboardGuru = () => {
           <button className="text-tk-primary font-semibold text-[0.9rem] text-center p-2 mt-auto hover:underline">View All Students</button>
         </div>
 
-        {/* Kartu Catatan Mengaji Widget */}
+        {/* ============================================================
+            BAGIAN 2B: Widget Kartu Catatan Mengaji (2 kolom)
+            Tabel catatan mengaji terkini semua siswa — tingkat Iqra/Al-Qur'an
+            dan catatan halaman/surah. Filter berdasarkan tingkat tersedia.
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl p-6 shadow-sm flex flex-col border border-tk-border lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
             <h2 className="flex items-center gap-2 text-[1.1rem] font-semibold text-tk-primary"><Icons.Mengaji /> Kartu Catatan Mengaji</h2>
@@ -156,7 +175,11 @@ export const DashboardGuru = () => {
           <button className="text-tk-primary font-semibold text-[0.9rem] text-center p-2 mt-auto hover:underline">View Progress History</button>
         </div>
 
-        {/* Calistung Progress Input */}
+        {/* ============================================================
+            BAGIAN 2C: Widget Input Perkembangan Calistung (3 kolom)
+            Preview tabel perkembangan akademik siswa (Membaca, Menulis, Berhitung)
+            Filter berdasarkan bulan dan minggu tersedia di header widget.
+           ============================================================ */}
         <div className="bg-tk-card rounded-xl p-6 shadow-sm flex flex-col border border-tk-border lg:col-span-3">
           <div className="flex justify-between items-center mb-6">
             <h2 className="flex items-center gap-2 text-[1.1rem] font-semibold text-tk-primary"><Icons.Nilai /> Input Perkembangan Calistung</h2>
